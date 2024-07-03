@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Bot</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+
+</head>
+
+<body>
+    <h1 id="botName"></h1>
+    <h2 id="botDescription"></h2>
+    <div id="chat"></div>
+    <button id="createButton"></button>
+
+
+    <div id="createBox">
+        <div class="addFlowStateBtn">
+            <button id="addFlowButton">Add Flow <br>
+                <img src="../images/plus.png"></button>
+            <button id="addStateButton">Add State<br>
+                <img src="../images/plus.png"></button>
+        </div>
+
+        <form id="addFlowForm" class="hidden">
+            <h2>Add New Flow</h2>
+            <label for="flowId">Flow ID:</label>
+            <input type="text" id="flowId" required><br>
+
+            <label for="flowTitle">Title:</label>
+            <input type="text" id="flowTitle" required><br>
+
+            <label for="flowDescription">Description:</label>
+            <input type="text" id="flowDescription" required><br>
+
+            <label for="flowConditions">Conditions:</label>
+            <input type="text" id="flowConditions"><br>
+
+            <button id="submitBtn" type="button" onclick="addFlow()">Add Flow</button>
+        </form>
+
+        <form id="addStateForm" class="hidden">
+            <div class="state-type-container">
+                <button type="button" id="monologue-state-btn">Monologue State</button>
+                <button type="button" id="dialogue-state-btn">Dialogue State</button>
+            </div>
+            <div id="add-monologue-state" class="hidden">
+                <h2>Add Monologue State</h2>
+                <div class="input-group">
+                    <label for="state-id">ID</label>
+                    <input type="number" id="state-id">
+                </div>
+                <div class="input-group">
+                    <label for="state-flow-id">Flow ID</label>
+                    <input type="number" id="state-flow-id">
+                </div>
+                <div class="featuresContainer">
+                    <button class="featureBtn" type="button" onclick="showConditionInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Conditions</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showQuestionInputs(this)">
+                        <img src="../images/plus_secondary.png" >
+                        <p class="featureText">Add Questions</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showCategoryInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Categories</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showEntityInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Entities</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showResponseInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Responses</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showTriggerInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Triggers</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showMultipleChoiceInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add MultipleChoice</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showGeneratorInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Generators</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showActionInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Actions</p>
+                    </button>
+                </div>
+
+                <div id="conditionInputs" class="hidden">
+                    <h3>Add Conditions</h3>
+                    <div id="conditions-container">
+                        <div class="input-group">
+                            <input type="text" class="condition-input" placeholder="input1">
+                            <input type="text" class="condition-input" placeholder="operator">
+                            <input type="text" class="condition-input" placeholder="null">
+                            <button type="button" onclick="addConditionInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveConditions(this)">Save Conditions</button>
+                </div>
+                <div id="questionInputs" class="hidden">
+                    <h3>Add Questions</h3>
+                    <div id="questions-container">
+                        <div id="question-conditions-container">
+                            <button type="button" onclick="showQuestionConditionInputs(this)">Add Condition</button>
+                        </div>
+                        <div id="question-condition" class="input-group hidden">
+                            <input type="text" class="question-condition-input" placeholder="input1">
+                            <input type="text" class="question-condition-input" placeholder="operator">
+                            <input type="text" class="question-condition-input" placeholder="null">
+                            <button type="button" onclick="addConditionInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                        <div id="question-text-container">
+                            <button type="button" onclick="showQuestionTextInput(this)">Add Text</button>
+                        </div>
+                        <div id="question-text" class="input-group hidden">
+                            <input type="text" class="question-text-input" placeholder="text">
+                            <button type="button" onclick="addTextInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveQuestions(this)">Save Questions</button>
+                </div>
+                <div id="categoryInputs" class="hidden">
+                    <h3>Add Categorisation Function</h3>
+                    <div id="categories-container">
+                        <div class="input-group">
+                            <input type="text" id="category-input" class="category-input" placeholder="input1">
+                            <input type="text" id="category-input" class="category-input" placeholder="input2">
+                            <button type="button" onclick="addInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+
+                    </div>
+                    <button type="button" onclick="saveCategories(this)">Save Categories</button>
+                </div>
+                <div id="entityInputs" class="hidden">
+                    <h3>Add Entities</h3>
+                    <div id="entities-container">
+                        <div class="input-group">
+                            <input type="text" class="entity-input" placeholder="input1">
+                            <input type="text" class="entity-input" placeholder="input2">
+                            <button type="button" onclick="addEntityInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveEntities(this)">Save Entities</button>
+                </div>
+                <div id="responseInputs" class="hidden">
+                    <h3>Add Responses</h3>
+                    <div id="responses-container">
+                        <div id="conditions-container">
+                            <button type="button" onclick="showResponseConditionInputs(this)">Add Condition</button>
+                        </div>
+                        <div id="response-condition" class="input-group hidden">
+                            <input type="text" class="response-condition-input" placeholder="input1">
+                            <input type="text" class="response-condition-input" placeholder="operator">
+                            <input type="text" class="response-condition-input" placeholder="null">
+                            <button type="button" onclick="addConditionInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                        <div id="text-container">
+                            <button type="button" onclick="showTextInput(this)">Add Text</button>
+                        </div>
+                        <div id="response-text" class="input-group hidden">
+                            <input type="text" class="response-text-input" placeholder="text">
+                            <button type="button" onclick="addTextInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveResponses(this)">Save Responses</button>
+                </div>
+                <div id="triggerInputs" class="hidden">
+                    <h3>Add Triggers</h3>
+                    <div id="trigger-conditions-container">
+                        <button type="button" onclick="showTriggersConditionInputs(this)">Add Condition</button>
+                    </div>
+                    <div id="triggers-condition" class="input-group hidden">
+                        <input type="text" class="triggers-condition-input" placeholder="input1">
+                        <input type="text" class="triggers-condition-input" placeholder="operator">
+                        <input type="text" class="triggers-condition-input" placeholder="null">
+                        <button type="button" onclick="addConditionInput(this)">+</button>
+                        <button type="button" onclick="remove(this)">-</button>
+                    </div>
+                    <div id="trigger-container">
+                        <button type="button" onclick="showTriggersTriggerInput(this)">Add Triggers</button>
+                    </div>
+                    <div id="triggers-trigger" class="input-group hidden">
+                        <input type="text" class="trigger-state" placeholder="state">
+                        <input type="number" class="trigger-state-id" placeholder="state id">
+                        <button type="button" onclick="addTriggerInput(this)">+</button>
+                        <button type="button" onclick="remove(this)">-</button>
+                    </div>
+                    <button type="button" onclick="saveTriggers(this)">Save Triggers</button>
+                </div>
+                <div id="multipleChoiceInputs" class="hidden">
+                    <h3>Add MultipleChoice</h3>
+                    <div id="multipleChoice-container">
+                        <div class="input-group">
+                            <input type="text" class="multipleChoice-input" placeholder="input1">
+                            <input type="text" class="multipleChoice-input" placeholder="input2">
+                            <button type="button" onclick="addMultipleChoiceInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveMultipleChoice(this)">Save MultipleChoice</button>
+                </div>
+                <div id="generatorInputs" class="hidden">
+                    <h3>Add Generators</h3>
+                    <div id="generators-container">
+                        <div class="input-group">
+                            <input type="text" class="generator-input" placeholder="input1">
+                            <input type="text" class="generator-input" placeholder="input2">
+                            <button type="button" onclick="addGeneratorInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveGenerators(this)">Save Generators</button>
+                </div>
+                <div id="actionInputs" class="hidden">
+                    <h3>Add Actions</h3>
+                    <div id="actions-container">
+                        <div class="input-group">
+                            <input type="text" class="action-input" placeholder="input1">
+                            <input type="text" class="action-input" placeholder="input2">
+                            <button type="button" onclick="addActionInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveActions(this)">Save Actions</button>
+                </div>
+                <button id="submitBtn" type="button" onclick="addState('monologue')">Add State</button>
+            </div>
+
+
+            <div id="add-dialogue-state" class="hidden">
+                <h2>Add Dialogue State</h2>
+                <div class="input-group">
+                    <label for="state-id">ID</label>
+                    <input type="number" id="state-id">
+                </div>
+                <div class="input-group">
+                    <label for="state-flow-id">Flow ID</label>
+                    <input type="number" id="state-flow-id">
+                </div>
+                <div class="featuresContainer">
+                    <button class="featureBtn" type="button" onclick="showConditionInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Conditions</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showQuestionInputs(this)">
+                        <img src="../images/plus_secondary.png" >
+                        <p class="featureText">Add Questions</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showCategoryInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Categories</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showEntityInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Entities</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showResponseInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Responses</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showTriggerInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Triggers</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showMultipleChoiceInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add MultipleChoice</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showGeneratorInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Generators</p>
+                    </button>
+                    <button class="featureBtn" type="button" onclick="showActionInputs(this)">
+                        <img src="../images/plus_secondary.png">
+                        <p class="featureText">Add Actions</p>
+                    </button>
+                </div>
+
+                <div id="conditionInputs" class="hidden">
+                    <h3>Add Conditions</h3>
+                    <div id="conditions-container">
+                        <div class="input-group">
+                            <input type="text" class="condition-input" placeholder="input1">
+                            <input type="text" class="condition-input" placeholder="operator">
+                            <input type="text" class="condition-input" placeholder="null">
+                            <button type="button" onclick="addConditionInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveConditions(this)">Save Conditions</button>
+                </div>
+                <div id="questionInputs" class="hidden">
+                    <h3>Add Questions</h3>
+                    <div id="questions-container">
+                        <div id="question-conditions-container">
+                            <button type="button" onclick="showQuestionConditionInputs(this)">Add Condition</button>
+                        </div>
+                        <div id="question-condition" class="input-group hidden">
+                            <input type="text" class="question-condition-input" placeholder="input1">
+                            <input type="text" class="question-condition-input" placeholder="operator">
+                            <input type="text" class="question-condition-input" placeholder="null">
+                            <button type="button" onclick="addConditionInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                        <div id="question-text-container">
+                            <button type="button" onclick="showQuestionTextInput(this)">Add Text</button>
+                        </div>
+                        <div id="question-text" class="input-group hidden">
+                            <input type="text" class="question-text-input" placeholder="text">
+                            <button type="button" onclick="addTextInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveQuestions(this)">Save Questions</button>
+                </div>
+                <div id="categoryInputs" class="hidden">
+                    <h3>Add Categorisation Function</h3>
+                    <div id="categories-container">
+                        <div class="input-group">
+                            <input type="text" id="category-input" class="category-input" placeholder="input1">
+                            <input type="text" id="category-input" class="category-input" placeholder="input2">
+                            <button type="button" onclick="addInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+
+                    </div>
+                    <button type="button" onclick="saveCategories(this)">Save Categories</button>
+                </div>
+                <div id="entityInputs" class="hidden">
+                    <h3>Add Entities</h3>
+                    <div id="entities-container">
+                        <div class="input-group">
+                            <input type="text" class="entity-input" placeholder="input1">
+                            <input type="text" class="entity-input" placeholder="input2">
+                            <button type="button" onclick="addEntityInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveEntities(this)">Save Entities</button>
+                </div>
+                <div id="responseInputs" class="hidden">
+                    <h3>Add Responses</h3>
+                    <div id="responses-container">
+                        <div id="conditions-container">
+                            <button type="button" onclick="showResponseConditionInputs(this)">Add Condition</button>
+                        </div>
+                        <div id="response-condition" class="input-group hidden">
+                            <input type="text" class="response-condition-input" placeholder="input1">
+                            <input type="text" class="response-condition-input" placeholder="operator">
+                            <input type="text" class="response-condition-input" placeholder="null">
+                            <button type="button" onclick="addConditionInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                        <div id="text-container">
+                            <button type="button" onclick="showTextInput(this)">Add Text</button>
+                        </div>
+                        <div id="response-text" class="input-group hidden">
+                            <input type="text" class="response-text-input" placeholder="text">
+                            <button type="button" onclick="addTextInput(this)">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveResponses(this)">Save Responses</button>
+                </div>
+                <div id="triggerInputs" class="hidden">
+                    <h3>Add Triggers</h3>
+                    <div id="trigger-conditions-container">
+                        <button type="button" onclick="showTriggersConditionInputs(this)">Add Condition</button>
+                    </div>
+                    <div id="triggers-condition" class="input-group hidden">
+                        <input type="text" class="triggers-condition-input" placeholder="input1">
+                        <input type="text" class="triggers-condition-input" placeholder="operator">
+                        <input type="text" class="triggers-condition-input" placeholder="null">
+                        <button type="button" onclick="addConditionInput(this)">+</button>
+                        <button type="button" onclick="remove(this)">-</button>
+                    </div>
+                    <div id="trigger-container">
+                        <button type="button" onclick="showTriggersTriggerInput(this)">Add Triggers</button>
+                    </div>
+                    <div id="triggers-trigger" class="input-group hidden">
+                        <input type="text" class="trigger-state" placeholder="state">
+                        <input type="number" class="trigger-state-id" placeholder="state id">
+                        <button type="button" onclick="addTriggerInput(this)">+</button>
+                        <button type="button" onclick="remove(this)">-</button>
+                    </div>
+                    <button type="button" onclick="saveTriggers(this)">Save Triggers</button>
+                </div>
+                <div id="multipleChoiceInputs" class="hidden">
+                    <h3>Add MultipleChoice</h3>
+                    <div id="multipleChoice-container">
+                        <div class="input-group">
+                            <input type="text" class="multipleChoice-input" placeholder="input1">
+                            <input type="text" class="multipleChoice-input" placeholder="input2">
+                            <button type="button" onclick="addMultipleChoiceInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveMultipleChoice(this)">Save MultipleChoice</button>
+                </div>
+                <div id="generatorInputs" class="hidden">
+                    <h3>Add Generators</h3>
+                    <div id="generators-container">
+                        <div class="input-group">
+                            <input type="text" class="generator-input" placeholder="input1">
+                            <input type="text" class="generator-input" placeholder="input2">
+                            <button type="button" onclick="addGeneratorInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveGenerators(this)">Save Generators</button>
+                </div>
+                <div id="actionInputs" class="hidden">
+                    <h3>Add Actions</h3>
+                    <div id="actions-container">
+                        <div class="input-group">
+                            <input type="text" class="action-input" placeholder="input1">
+                            <input type="text" class="action-input" placeholder="input2">
+                            <button type="button" onclick="addActionInput()">+</button>
+                            <button type="button" onclick="remove(this)">-</button>
+                        </div>
+                    </div>
+                    <button type="button" onclick="saveActions(this)">Save Actions</button>
+                </div>
+                <button id="submitBtn" type="button" onclick="addState('dialogue')">Add State</button>
+            </div>
+
+
+        </form>
+    </div>
+
+
+</body>
+<script src="../js/start.js"></script>
+
+</html>
