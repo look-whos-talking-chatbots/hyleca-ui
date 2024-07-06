@@ -788,6 +788,8 @@ return actions;
 
 function loadFlows() {
     const flowContainer = document.getElementById('flowsContainer');
+    flowContainer.innerHTML = '';
+
     botData.dialogue_flows.forEach(flow => {
         const flowElement = document.createElement('div');
         flowElement.className = 'flow';
@@ -817,18 +819,18 @@ function loadFlows() {
             
             const flowIdInputMonologue = document.querySelectorAll('.state-flow-id-monologue');
             const flowIdInputDialogue = document.querySelectorAll('.state-flow-id-dialogue');
-            
+
             if (flowIdInputMonologue.length > 0) {
                 flowIdInputMonologue.forEach(input1 => {
-                    input1.value = flowId;  
+                    input1.value = flow.id;
                 });
             } else {
                 console.error('No elements with class "state-flow-id-monologue" found.');
             }
-            
+
             if (flowIdInputDialogue.length > 0) {
                 flowIdInputDialogue.forEach(input2 => {
-                    input2.value = flowId;  
+                    input2.value = flow.id;
                 });
             } else {
                 console.error('No elements with class "state-flow-id-dialogue" found.');
@@ -841,7 +843,14 @@ function loadFlows() {
             stateElement.innerHTML = `<div class="state-header">State ID: ${state.id}</div>
                                       <div class="state-header">State Type: ${state.type}</div>`;
             statesContainer.appendChild(stateElement);
+            const addStateButton = statesContainer.querySelector("#addStateButton");
+            if (addStateButton) {
+                statesContainer.insertBefore(stateElement, addStateButton);
+            } else {
+                statesContainer.appendChild(stateElement);
+            }
         });
+
         const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
         toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
 
