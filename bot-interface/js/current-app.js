@@ -12,6 +12,18 @@ let botData = {
     dialogue_flows: []
 };
 
+document.getElementById('downloadIcon').addEventListener('click', function() {
+    const jsonContent = JSON.stringify(botData, null, 2);
+    const blob = new Blob([jsonContent], { type: 'application/json' });
+    const downloadLink = document.createElement('a');
+    downloadLink.href = URL.createObjectURL(blob);
+    downloadLink.download = 'botData.json';
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+});
+
+
 document.addEventListener('DOMContentLoaded', (event) => {
 
     const savedBotData = localStorage.getItem('botData');
@@ -30,12 +42,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         modal.style.display = 'flex';
     });
 
-    // document.getElementById('addStateButton').addEventListener('click', function() {
-    //     console.log('Add State Button Clicked');
-    //     var modalState = document.getElementById('modalOverlayState');
-    //     modalState.style.display = 'flex';
-    // });
-    // Check if addStateButton exists before adding event listener
     const addStateButton = document.getElementById('addStateButton');
     if (addStateButton) {
         addStateButton.addEventListener('click', function() {
@@ -88,7 +94,10 @@ function addFlow() {
     const flowContainer = document.getElementById('flowsContainer');
     const flowElement = document.createElement('div');
     flowElement.className = 'flow';
-    flowElement.innerHTML = `<div class="flow-header">Flow ID: ${flowId}</div>`;
+    flowElement.innerHTML = `
+        <div class="flow-header">Flow ID: ${flowId}</div>
+        <button class="toggle-states-button"></button>
+    `;
     flowContainer.appendChild(flowElement);
     const statesContainer=document.createElement('div');
     statesContainer.id=`'statesContainer-${flowId}'`;
@@ -115,9 +124,42 @@ function addFlow() {
         console.log('Add State Button Clicked');
         var modalState = document.getElementById('modalOverlayState');
         modalState.style.display = 'flex';
+
+        const flowIdInputMonologue = document.querySelectorAll('.state-flow-id-monologue');
+        const flowIdInputDialogue = document.querySelectorAll('.state-flow-id-dialogue');
         
-    });
+        if (flowIdInputMonologue.length > 0) {
+            flowIdInputMonologue.forEach(input1 => {
+                input1.value = flowId;  
+            });
+        } else {
+            console.error('No elements with class "state-flow-id-monologue" found.');
+        }
+        
+        if (flowIdInputDialogue.length > 0) {
+            flowIdInputDialogue.forEach(input2 => {
+                input2.value = flowId;  
+            });
+        } else {
+            console.error('No elements with class "state-flow-id-dialogue" found.');
+        }
+        
+        });
+
+    const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
+        toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
+
+        toggleStatesButton.addEventListener('click', function () {
+            if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
+                statesContainer.style.display = 'none';
+                toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
+            } else {
+                statesContainer.style.display = 'flex';
+                toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
+            }
+        });
 }
+
 function addState(stateType) {
     let stateId, stateFlowId;
     if(stateType === "monologue"){
@@ -159,14 +201,30 @@ function addState(stateType) {
     if (targetFlow) {
         targetFlow.states.push(newState);
         saveBotData();
-    }
+    } else {
+            console.error("Target Flow not found for ID:", stateFlowId);
+            return;
+        }
     const stateContainer = document.getElementById(`'statesContainer-${stateFlowId}'`);
+    if (!stateContainer) {
+        console.error(`State container with ID 'statesContainer-${stateFlowId}' not found.`);
+        return;
+    }
     const stateElement = document.createElement('div');
     stateElement.className = 'state';
     stateElement.innerHTML = `<div class="state-header">State ID: ${stateId}</div>
                               <div class="state-header">State Type: ${stateType}</div>`;
     stateContainer.appendChild(stateElement);
     
+    // Ensure the "Add State" button is always at the bottom
+    const addStateButton = stateContainer.querySelector('#addStateButton');
+    if (addStateButton) {
+        stateContainer.insertBefore(stateElement, addStateButton);
+    } else {
+        stateContainer.appendChild(stateElement);
+    }
+
+
     console.log(botData);
     alert('New state added!');
 
@@ -728,13 +786,15 @@ return actions;
 
 }
 
-
 function loadFlows() {
     const flowContainer = document.getElementById('flowsContainer');
     botData.dialogue_flows.forEach(flow => {
         const flowElement = document.createElement('div');
         flowElement.className = 'flow';
-        flowElement.innerHTML = `<div class="flow-header">Flow ID: ${flow.id}</div>`;
+        flowElement.innerHTML = `
+            <div class="flow-header">Flow ID: ${flow.id}</div>
+            <button class="toggle-states-button"></button>
+        `;
         flowContainer.appendChild(flowElement);
 
         const statesContainer = document.createElement('div');
@@ -754,6 +814,25 @@ function loadFlows() {
             console.log('Add State Button Clicked');
             var modalState = document.getElementById('modalOverlayState');
             modalState.style.display = 'flex';
+            
+            const flowIdInputMonologue = document.querySelectorAll('.state-flow-id-monologue');
+            const flowIdInputDialogue = document.querySelectorAll('.state-flow-id-dialogue');
+            
+            if (flowIdInputMonologue.length > 0) {
+                flowIdInputMonologue.forEach(input1 => {
+                    input1.value = flowId;  
+                });
+            } else {
+                console.error('No elements with class "state-flow-id-monologue" found.');
+            }
+            
+            if (flowIdInputDialogue.length > 0) {
+                flowIdInputDialogue.forEach(input2 => {
+                    input2.value = flowId;  
+                });
+            } else {
+                console.error('No elements with class "state-flow-id-dialogue" found.');
+            }
         });
 
         flow.states.forEach(state => {
@@ -762,6 +841,18 @@ function loadFlows() {
             stateElement.innerHTML = `<div class="state-header">State ID: ${state.id}</div>
                                       <div class="state-header">State Type: ${state.type}</div>`;
             statesContainer.appendChild(stateElement);
+        });
+        const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
+        toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
+
+        toggleStatesButton.addEventListener('click', function () {
+            if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
+                statesContainer.style.display = 'none';
+                toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
+            } else {
+                statesContainer.style.display = 'flex';
+                toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
+            }
         });
     });
 }
