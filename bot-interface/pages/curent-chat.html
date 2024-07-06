@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat Bot</title>
 
-    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/current-style.css">
 
 </head>
 
@@ -14,7 +14,6 @@
     <h1 id="botName"></h1>
     <h2 id="botDescription"></h2>
     <div id="chat"></div>
-    <button id="createButton"></button>
 
 
     <div id="botInfo">
@@ -26,22 +25,13 @@
         <!-- Flow elements will be added here -->
     </div>
     <button id="addFlowButton">Add Flow</button>
-    
-    <div id="statesContainer">
-        <!-- State elements will be added here -->
-    </div>
-    <button id="addStateButton">Add State</button>
 
 
-    <div id="createBox">
-        <div class="addFlowStateBtn">
-            <button id="addFlowButton">Add Flow <br>
-                <img src="../images/plus.png"></button>
-            <button id="addStateButton">Add State<br>
-                <img src="../images/plus.png"></button>
-        </div>
-
-        <form id="addFlowForm" class="hidden">
+<div class="modal-overlay" id="modalOverlayFlow">
+    <div class="modal-content" id="modalContentFlow">
+        <!-- Add your form here -->
+         
+        <form id="addFlowForm">
             <h2>Add New Flow</h2>
             <label for="flowId">Flow ID:</label>
             <input type="text" id="flowId" required><br>
@@ -68,8 +58,13 @@
 
             <button id="submitBtn" type="button" onclick="addFlow()">Add Flow</button>
         </form>
+    </div>
+</div>
 
-        <form id="addStateForm" class="hidden">
+<div class="modal-overlay" id="modalOverlayState">
+    <div class="modal-content" id="modalContentState">
+        <!-- Add your state here -->
+        <form id="addStateForm">
             <div class="state-type-container">
                 <button type="button" id="monologue-state-btn">Monologue State</button>
                 <button type="button" id="dialogue-state-btn">Dialogue State</button>
@@ -328,7 +323,7 @@
                             <input type="text" class="condition-input" placeholder="input1">
                             <input type="text" class="condition-input" placeholder="operator">
                             <input type="text" class="condition-input" placeholder="null">
-                            <button type="button" onclick="addConditionInput()">+</button>
+                            <button type="button" onclick="addConditionInput(this)">+</button>
                             <button type="button" onclick="remove(this)">-</button>
                         </div>
                     </div>
@@ -472,9 +467,14 @@
 
         </form>
     </div>
+</div>
+        
+
+        
+
 
 
 </body>
-<script src="../js/start.js"></script>
+<script src="../js/current-app.js"></script>
 
 </html>

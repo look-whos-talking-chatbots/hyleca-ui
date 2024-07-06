@@ -1,53 +1,53 @@
-
-// LocalStorage'dan bot bilgilerini al
 const botInfo = JSON.parse(localStorage.getItem('botInfo'));
 
-const botData = {
+let botData = {
     version: botInfo.version,
     name: botInfo.name,
     description: botInfo.description,
     language: botInfo.language,
     slot_fillers: {
-      static_slots: {},
-      retrieval_slots: {}
+        static_slots: {},
+        retrieval_slots: {}
     },
     dialogue_flows: []
 };
 
-if (botInfo) {
-    document.getElementById('botName').textContent = botInfo.name + "-Bot";
-    document.getElementById('botDescription').textContent = botInfo.description;
-} else {
-    document.getElementById('botName').textContent = 'Chat Bot';
-    document.getElementById('botDescription').textContent = '';
-}
-
-
-
-
 document.addEventListener('DOMContentLoaded', (event) => {
+
+    const savedBotData = localStorage.getItem('botData');
+    if (savedBotData) {
+        botData = JSON.parse(savedBotData);
+        loadFlows();
+    }
+    // Set initial bot name and description
+    document.getElementById('botName').textContent = botData.name + "-Bot";
+    document.getElementById('botDescription').textContent = botData.description;
+
+    // Add event listeners
+    document.getElementById('addFlowButton').addEventListener('click', function() {
+        console.log('Add Flow Button Clicked');
+        var modal = document.getElementById('modalOverlayFlow');
+        modal.style.display = 'flex';
+    });
+
+    // document.getElementById('addStateButton').addEventListener('click', function() {
+    //     console.log('Add State Button Clicked');
+    //     var modalState = document.getElementById('modalOverlayState');
+    //     modalState.style.display = 'flex';
+    // });
+    // Check if addStateButton exists before adding event listener
+    const addStateButton = document.getElementById('addStateButton');
+    if (addStateButton) {
+        addStateButton.addEventListener('click', function() {
+            console.log('Add State Button Clicked');
+            var modalState = document.getElementById('modalOverlayState');
+            modalState.style.display = 'flex';
+        });
+    } else {
+        console.error('addStateButton not found.');
+    }
+
     addEventListenersToStateButtons();
-});
-
-document.getElementById('createButton').addEventListener('click', () => {
-    document.getElementById('createButton').style.display = 'none';
-    document.getElementById('createBox').style.display = 'block';
-    document.getElementById('addFlowButton').style.display = 'block';
-    document.getElementById('addStateButton').style.display = 'block';
-});
-
-document.getElementById('addFlowButton').addEventListener('click', (event) => {
-    event.preventDefault();
-    document.getElementById('addFlowForm').classList.remove('hidden');
-    document.getElementById('addFlowButton').style.display = 'none';
-    document.getElementById('addStateButton').style.display = 'none';
-});
-
-document.getElementById('addStateButton').addEventListener('click', (event) => {
-    event.preventDefault();
-    document.getElementById('addStateForm').classList.remove('hidden');
-    document.getElementById('addFlowButton').style.display = 'none';
-    document.getElementById('addStateButton').style.display = 'none';
 });
 
 function addEventListenersToStateButtons() {
@@ -69,7 +69,6 @@ function showDialogueForm() {
     document.getElementById('add-monologue-state').classList.add('hidden');
 }
 
-
 function addFlow() {
     const flowId = document.getElementById('flowId').value;
     const flowTitle = document.getElementById('flowTitle').value;
@@ -83,23 +82,126 @@ function addFlow() {
         states: []
     };
 
-
     botData.dialogue_flows.push(newFlow);
+    saveBotData();
 
     const flowContainer = document.getElementById('flowsContainer');
     const flowElement = document.createElement('div');
     flowElement.className = 'flow';
     flowElement.innerHTML = `<div class="flow-header">Flow ID: ${flowId}</div>`;
     flowContainer.appendChild(flowElement);
+    const statesContainer=document.createElement('div');
+    statesContainer.id=`'statesContainer-${flowId}'`;
+    statesContainer.className='states-container';
+
+    flowContainer.appendChild(statesContainer);
+
+    const addStateButton = document.createElement('button');
+    addStateButton.id = "addStateButton"; 
+    addStateButton.textContent = "Add State";
+    statesContainer.appendChild(addStateButton);
+
+    const hrElement = document.createElement('hr');
+    flowContainer.appendChild(hrElement);
 
     console.log(botData);
     alert('New flow added!');
-    displayFlows();
 
     document.getElementById('addFlowForm').reset();
-    document.getElementById('addFlowForm').classList.add('hidden');
-    document.getElementById('createBox').style.display = 'none';
-    document.getElementById('createButton').style.display = 'block';
+    document.getElementById('modalOverlayFlow').style.display = 'none';
+
+    // addStateButton'a event listener ekleme
+    addStateButton.addEventListener('click', function() {
+        console.log('Add State Button Clicked');
+        var modalState = document.getElementById('modalOverlayState');
+        modalState.style.display = 'flex';
+        
+    });
+}
+function addState(stateType) {
+    let stateId, stateFlowId;
+    if(stateType === "monologue"){
+        stateId = document.querySelector('#add-monologue-state #state-id').value;
+        stateFlowId = document.querySelector('#add-monologue-state #state-flow-id').value;
+    }
+    else if(stateType === "dialogue"){
+        stateId = document.querySelector('#add-dialogue-state #state-id').value;
+        stateFlowId = document.querySelector('#add-dialogue-state #state-flow-id').value;
+    }
+    
+    // Conditions, Questions, Categories, Entities, Responses, Triggers, MultipleChoice, Generators, Actions
+    const stateConditions = saveConditions();
+    const stateQuestions = saveQuestions();
+    const stateCategories = saveCategories();
+    const stateEntities = saveEntities();
+    const stateResponses = saveResponses();
+    const stateTriggers = saveTriggers();
+    const stateMultipleChoice = saveMultipleChoice();
+    const stateGenerators = saveGenerators();
+    const stateActions = saveActions();
+   
+    const newState = {
+        id: parseInt(stateId),
+        type: stateType,
+        conditions: stateConditions,
+        questions: stateQuestions,
+        categories: stateCategories,
+        entities: stateEntities,
+        responses: stateResponses,
+        triggers: stateTriggers,
+        multipleChoices: stateMultipleChoice,
+        generators: stateGenerators,
+        actions: stateActions
+    };
+
+    // ilgili flow'a state'i ekliyoruz
+    const targetFlow = botData.dialogue_flows.find(flow => flow.id === parseInt(stateFlowId));
+    if (targetFlow) {
+        targetFlow.states.push(newState);
+        saveBotData();
+    }
+    const stateContainer = document.getElementById(`'statesContainer-${stateFlowId}'`);
+    const stateElement = document.createElement('div');
+    stateElement.className = 'state';
+    stateElement.innerHTML = `<div class="state-header">State ID: ${stateId}</div>
+                              <div class="state-header">State Type: ${stateType}</div>`;
+    stateContainer.appendChild(stateElement);
+    
+    console.log(botData);
+    alert('New state added!');
+
+    document.getElementById('addStateForm').reset();
+    document.getElementById('modalOverlayState').style.display = 'none';
+
+    document.getElementById('add-monologue-state').classList.add('hidden');
+    document.getElementById('add-dialogue-state').classList.add('hidden');
+    document.getElementById('monologue-state-btn').classList.remove('hidden');
+    document.getElementById('dialogue-state-btn').classList.remove('hidden');
+}
+
+
+function saveConditionFlow() {
+    const inputs = document.querySelectorAll(".flow-condition-input");
+    const conditions = [];
+
+    inputs.forEach((input, index) => {
+        const value = input.value.trim();
+        // Convert "null" string to null value
+        const finalValue = (value === "null") ? null : value;
+
+        // Check if all inputs are filled
+        if (value !== '') {
+            const inputType = index % 3; // Determine which input type (1st, 2nd, or 3rd)
+            const groupIndex = Math.floor(index / 3); // Determine group index
+
+            if (!conditions[groupIndex]) {
+                conditions[groupIndex] = [];
+            }
+
+            conditions[groupIndex][inputType] = finalValue;
+        }
+    });
+    return conditions;
 }
 
 // State Features Operations
@@ -627,211 +729,45 @@ return actions;
 }
 
 
-function addState(stateType) {
-    const stateId = document.getElementById('state-id').value;
-    const stateFlowId = document.getElementById('state-flow-id').value;
-
-    // Conditions, Questions, Categories, Entities, Responses, Triggers, MultipleChoice, Generators, Actions
-    const stateConditions = saveConditions();
-    const stateQuestions = saveQuestions();
-    const stateCategories = saveCategories();
-    const stateEntities = saveEntities();
-    const stateResponses = saveResponses();
-    const stateTriggers = saveTriggers();
-    const stateMultipleChoice = saveMultipleChoice();
-    const stateGenerators = saveGenerators();
-    const stateActions = saveActions();
-   
-    const newState = {
-        id: parseInt(stateId),
-        type: stateType,
-        conditions: stateConditions,
-        questions: stateQuestions,
-        categories: stateCategories,
-        entities: stateEntities,
-        responses: stateResponses,
-        triggers: stateTriggers,
-        multipleChoices: stateMultipleChoice,
-        generators: stateGenerators,
-        actions: stateActions
-    };
-
-    // ilgili flow'a state'i ekliyoruz
-    const targetFlow = botData.dialogue_flows.find(flow => flow.id === parseInt(stateFlowId));
-    if (targetFlow) {
-        targetFlow.states.push(newState);
-    }
-    const stateContainer = document.getElementById('statesContainer');
-    const stateElement = document.createElement('div');
-    stateElement.className = 'state';
-    stateElement.innerHTML = `<div class="state-header">State ID: ${stateId}</div>`;
-    stateContainer.appendChild(stateElement);
-    
-    console.log(botData);
-    alert('New state added!');
-    // displayStates();
-
-    document.getElementById('addStateForm').classList.add('hidden');
-    document.getElementById('addStateForm').reset();
-
-    document.getElementById('createBox').style.display = 'none';
-    document.getElementById('createButton').style.display = 'block';
-    document.getElementById('add-monologue-state').classList.add('hidden');
-    document.getElementById('add-dialogue-state').classList.add('hidden');
-    document.getElementById('monologue-state-btn').classList.remove('hidden');
-    document.getElementById('dialogue-state-btn').classList.remove('hidden');
-
-    
-
-}
-
-
-function displayFlows() {
-    const flowDiv = document.querySelector('.flow-section');
-    if (flowDiv) {
-        flowDiv.innerHTML = '<h2>Flows</h2>'; // Clear previous flows
-    } else {
-        const newFlowDiv = document.createElement('div');
-        newFlowDiv.classList.add('flow-section');
-        newFlowDiv.innerHTML = '<h2>Flows</h2>';
-        document.getElementById('chat').appendChild(newFlowDiv);
-    }
-
+function loadFlows() {
+    const flowContainer = document.getElementById('flowsContainer');
     botData.dialogue_flows.forEach(flow => {
-        const singleFlowDiv = document.createElement('div');
-        singleFlowDiv.classList.add('flow');
-        singleFlowDiv.innerHTML = `
-            <h3>Flow ID: ${flow.id}</h3>
-            <p>Title: ${flow.title}</p>
-            <p>Description: ${flow.description}</p>
-            <p>Conditions: ${flow.conditions.join(', ')}</p>
-        `;
-        document.querySelector('.flow-section').appendChild(singleFlowDiv);
+        const flowElement = document.createElement('div');
+        flowElement.className = 'flow';
+        flowElement.innerHTML = `<div class="flow-header">Flow ID: ${flow.id}</div>`;
+        flowContainer.appendChild(flowElement);
 
-        
-    const jsonContent = JSON.stringify(botData, null, 2);
+        const statesContainer = document.createElement('div');
+        statesContainer.id = `statesContainer-${flow.id}`;
+        statesContainer.className = 'states-container';
+        flowContainer.appendChild(statesContainer);
 
-    const blob = new Blob([jsonContent], { type: 'application/json' });
+        const addStateButton = document.createElement('button');
+        addStateButton.id = "addStateButton";
+        addStateButton.textContent = "Add State";
+        statesContainer.appendChild(addStateButton);
 
-    const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = 'responses.json';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
+        const hrElement = document.createElement('hr');
+        flowContainer.appendChild(hrElement);
+
+        addStateButton.addEventListener('click', function() {
+            console.log('Add State Button Clicked');
+            var modalState = document.getElementById('modalOverlayState');
+            modalState.style.display = 'flex';
+        });
+
+        flow.states.forEach(state => {
+            const stateElement = document.createElement('div');
+            stateElement.className = 'state';
+            stateElement.innerHTML = `<div class="state-header">State ID: ${state.id}</div>
+                                      <div class="state-header">State Type: ${state.type}</div>`;
+            statesContainer.appendChild(stateElement);
+        });
     });
 }
 
-function displayStates() {
-    const stateDiv = document.querySelector('.state-section');
-    if (stateDiv) {
-        stateDiv.innerHTML = '<h2>States</h2>'; // Önceki state'leri temizle
-    } else {
-        const newStateDiv = document.createElement('div');
-        newStateDiv.classList.add('state-section');
-        newStateDiv.innerHTML = '<h2>States</h2>';
-        document.getElementById('chat').appendChild(newStateDiv);
-    }
-
-    // Bot data içindeki her bir state için döngü oluştur
-    botData.dialogue_states.forEach(state => {
-        const singleStateDiv = document.createElement('div');
-        singleStateDiv.classList.add('state');
-        singleStateDiv.innerHTML = `
-            <h4>State ID: ${state.id}</h4>
-            <p>Type: ${state.type}</p>
-        `;
-        
-        // Conditions gösterimi
-        
-        if (state.conditions.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Conditions:</h5>
-                <ul>
-                    ${state.conditions.map(c => `<li>${c[0]}: ${c[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Questions gösterimi
-        if (state.questions.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Questions:</h5>
-                <ul>
-                    ${state.questions.map(q => `<li>${q[0]}: ${q[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Categories gösterimi
-        if (state.categories.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Categories:</h5>
-                <ul>
-                    ${state.categories.map(cat => `<li>${cat[0]}: ${cat[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Entities gösterimi
-        if (state.entities.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Entities:</h5>
-                <ul>
-                    ${state.entities.map(ent => `<li>${ent[0]}: ${ent[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Responses gösterimi
-        if (state.responses.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Responses:</h5>
-                <ul>
-                    ${state.responses.map(resp => `<li>${resp[0]}: ${resp[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Triggers gösterimi
-        if (state.triggers.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Triggers:</h5>
-                <ul>
-                    ${state.triggers.map(trigger => `<li>${trigger[0]}: ${trigger[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Multiple Choice gösterimi
-        if (state.multipleChoices.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Multiple Choice:</h5>
-                <ul>
-                    ${state.multipleChoices.map(mc => `<li>${mc[0]}: ${mc[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Generators gösterimi
-        if (state.generators.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Generators:</h5>
-                <ul>
-                    ${state.generators.map(gen => `<li>${gen[0]}: ${gen[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        // Actions gösterimi
-        if (state.actions.length > 0) {
-            singleStateDiv.innerHTML += `
-                <h5>Actions:</h5>
-                <ul>
-                    ${state.actions.map(action => `<li>${action[0]}: ${action[1]}</li>`).join('')}
-                </ul>
-            `;
-        }
-
-        document.querySelector('.state-section').appendChild(singleStateDiv);
-    });
+function saveBotData() {
+    localStorage.setItem('botData', JSON.stringify(botData));
 }
+
+
