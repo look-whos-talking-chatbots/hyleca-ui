@@ -170,7 +170,7 @@ function addState(stateType) {
         stateId = document.querySelector('#add-dialogue-state #state-id').value;
         stateFlowId = document.querySelector('#add-dialogue-state #state-flow-id').value;
     }
-    
+
     // Conditions, Questions, Categories, Entities, Responses, Triggers, MultipleChoice, Generators, Actions
     const stateConditions = saveConditions();
     const stateQuestions = saveQuestions();
@@ -181,7 +181,7 @@ function addState(stateType) {
     const stateMultipleChoice = saveMultipleChoice();
     const stateGenerators = saveGenerators();
     const stateActions = saveActions();
-   
+
     const newState = {
         id: parseInt(stateId),
         type: stateType,
@@ -213,9 +213,9 @@ function addState(stateType) {
     const stateElement = document.createElement('div');
     stateElement.className = 'state';
     stateElement.innerHTML = `<div class="state-header">State ID: ${stateId}</div>
-                              <div class="state-header">State Type: ${stateType}</div>`;
+                            <div class="state-header">State Type: ${stateType}</div>`;
     stateContainer.appendChild(stateElement);
-    
+
     // Ensure the "Add State" button is always at the bottom
     const addStateButton = stateContainer.querySelector('#addStateButton');
     if (addStateButton) {
@@ -236,6 +236,7 @@ function addState(stateType) {
     document.getElementById('monologue-state-btn').classList.remove('hidden');
     document.getElementById('dialogue-state-btn').classList.remove('hidden');
 }
+
 
 
 function saveConditionFlow() {
@@ -365,23 +366,32 @@ function showActionInputs(button) {
     }
 }
 
-function showResponseConditionInputs(button){
+function showResponseConditionInputs(button) {
     const form = button.parentElement.parentElement.parentElement.parentElement;
     if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state #response-condition').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state #response-condition').classList.remove('hidden');
+        document.querySelectorAll('#add-monologue-state #response-condition').forEach(element => {
+            element.classList.remove('hidden');
+        });
+    } else if (form.id === "add-dialogue-state") {
+        document.querySelectorAll('#add-dialogue-state #response-condition').forEach(element => {
+            element.classList.remove('hidden');
+        });
     }
 }
 
-function showTextInput(button){
+function showTextInput(button) {
     const form = button.parentElement.parentElement.parentElement.parentElement;
     if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state #response-text').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state #response-text').classList.remove('hidden');
+        document.querySelectorAll('#add-monologue-state #response-text').forEach(element => {
+            element.classList.remove('hidden');
+        });
+    } else if (form.id === "add-dialogue-state") {
+        document.querySelectorAll('#add-dialogue-state #response-text').forEach(element => {
+            element.classList.remove('hidden');
+        });
     }
 }
+
 
 function showTriggersConditionInputs(button){
     const form = button.parentElement.parentElement.parentElement;
@@ -401,24 +411,36 @@ function showTriggersTriggerInput(button){
     }
 }
 
-function showQuestionConditionInputs(button){
+function showQuestionConditionInputs(button) {
     const form = button.parentElement.parentElement.parentElement.parentElement;
+    let questionConditionElements;
+    
     if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state #question-condition').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state #question-condition').classList.remove('hidden');
+        questionConditionElements = document.querySelectorAll('#add-monologue-state #question-condition');
+    } else if (form.id === "add-dialogue-state") {
+        questionConditionElements = document.querySelectorAll('#add-dialogue-state #question-condition');
     }
+    
+    questionConditionElements.forEach(element => {
+        element.classList.remove('hidden');
+    });
 }
 
-function showQuestionTextInput(button){
+function showQuestionTextInput(button) {
     const form = button.parentElement.parentElement.parentElement.parentElement;
+    let questionTextElements;
+    
     if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state #question-text').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state #question-text').classList.remove('hidden');
+        questionTextElements = document.querySelectorAll('#add-monologue-state #question-text');
+    } else if (form.id === "add-dialogue-state") {
+        questionTextElements = document.querySelectorAll('#add-dialogue-state #question-text');
     }
-
+    
+    questionTextElements.forEach(element => {
+        element.classList.remove('hidden');
+    });
 }
+
 
 function addInput(button){
     const container = button.parentElement.parentElement;
@@ -471,6 +493,140 @@ function addTriggerInput(button){
     `;
     container.appendChild(div);
 }
+
+function addResponseAgain(button){
+    const form = button.parentElement.parentElement;
+    let responseInputs;
+    if (form.id === "add-monologue-state") {
+        responseInputs = document.querySelector('#add-monologue-state #responseInputs');
+
+    } else if (form.id === "add-dialogue-state") {
+        responseInputs = document.querySelector('#add-dialogue-state #responseInputs');
+    }
+    const responsecontainer = document.createElement('div');
+    responsecontainer.id= 'responses-container';
+    
+    const conditionsContainer = document.createElement('div');
+    conditionsContainer.id = 'conditions-container';
+    conditionsContainer.innerHTML = `
+        <button type="button" onclick="showResponseConditionInputs(this)">Add Condition</button>
+    `;
+    
+    const responseCondition = document.createElement('div');
+    responseCondition.id = 'response-condition';
+    responseCondition.className = 'input-group hidden';
+    responseCondition.innerHTML = `
+        <input type="text" class="response-condition-input" placeholder="input1">
+        <input type="text" class="response-condition-input" placeholder="operator">
+        <input type="text" class="response-condition-input" placeholder="null">
+        <button type="button" onclick="addConditionInput(this)">+</button>
+        <button type="button" onclick="remove(this)">-</button>
+    `;
+    
+    const textContainer = document.createElement('div');
+    textContainer.id = 'text-container';
+    textContainer.innerHTML = `
+        <button type="button" onclick="showTextInput(this)">Add Text</button>
+    `;
+    
+    const responseText = document.createElement('div');
+    responseText.id = 'response-text';
+    responseText.className = 'input-group hidden';
+    responseText.innerHTML = `
+        <input type="text" class="response-text-input" placeholder="text">
+        <button type="button" onclick="addTextInput(this)">+</button>
+        <button type="button" onclick="remove(this)">-</button>
+    `;
+    
+    responsecontainer.appendChild(conditionsContainer);
+    responsecontainer.appendChild(responseCondition);
+    responsecontainer.appendChild(textContainer);
+    responsecontainer.appendChild(responseText);
+    
+    if (form.id === "add-monologue-state") {
+        const firstButton = responseInputs.querySelector('#add-monologue-state .addButtonResponse');
+        if (firstButton) {
+            responseInputs.insertBefore(responsecontainer, firstButton);
+        } else {
+            responseInputs.appendChild(responsecontainer);
+        }
+    } else if (form.id === "add-dialogue-state") {
+        const firstButton = responseInputs.querySelector('#add-dialogue-state .addButtonResponse');
+        if (firstButton) {
+            responseInputs.insertBefore(responsecontainer, firstButton);
+        } else {
+            responseInputs.appendChild(responsecontainer);
+        }
+    }
+}
+
+function addQuestionAgain(button) {
+    const form = button.parentElement.parentElement;
+    let questionInputs;
+    
+    if (form.id === "add-monologue-state") {
+        questionInputs = document.querySelector('#add-monologue-state #questionInputs');
+    } else if (form.id === "add-dialogue-state") {
+        questionInputs = document.querySelector('#add-dialogue-state #questionInputs');
+    }
+    
+    const questionsContainer = document.createElement('div');
+    questionsContainer.id = 'questions-container';
+    
+    const questionConditionsContainer = document.createElement('div');
+    questionConditionsContainer.id = 'question-conditions-container';
+    questionConditionsContainer.innerHTML = `
+        <button type="button" onclick="showQuestionConditionInputs(this)">Add Condition</button>
+    `;
+    
+    const questionCondition = document.createElement('div');
+    questionCondition.id = 'question-condition';
+    questionCondition.className = 'input-group hidden';
+    questionCondition.innerHTML = `
+        <input type="text" class="question-condition-input" placeholder="input1">
+        <input type="text" class="question-condition-input" placeholder="operator">
+        <input type="text" class="question-condition-input" placeholder="null">
+        <button type="button" onclick="addConditionInput(this)">+</button>
+        <button type="button" onclick="remove(this)">-</button>
+    `;
+    
+    const questionTextContainer = document.createElement('div');
+    questionTextContainer.id = 'question-text-container';
+    questionTextContainer.innerHTML = `
+        <button type="button" onclick="showQuestionTextInput(this)">Add Text</button>
+    `;
+    
+    const questionText = document.createElement('div');
+    questionText.id = 'question-text';
+    questionText.className = 'input-group hidden';
+    questionText.innerHTML = `
+        <input type="text" class="question-text-input" placeholder="text">
+        <button type="button" onclick="addTextInput(this)">+</button>
+        <button type="button" onclick="remove(this)">-</button>
+    `;
+    
+    questionsContainer.appendChild(questionConditionsContainer);
+    questionsContainer.appendChild(questionCondition);
+    questionsContainer.appendChild(questionTextContainer);
+    questionsContainer.appendChild(questionText);
+    
+    if (form.id === "add-monologue-state") {
+        const firstButton = questionInputs.querySelector('#add-monologue-state .addButtonQuestion');
+        if (firstButton) {
+            questionInputs.insertBefore(questionsContainer, firstButton);
+        } else {
+            questionInputs.appendChild(questionsContainer);
+        }
+    } else if (form.id === "add-dialogue-state") {
+        const firstButton = questionInputs.querySelector('#add-dialogue-state .addButtonQuestion');
+        if (firstButton) {
+            questionInputs.insertBefore(questionsContainer, firstButton);
+        } else {
+            questionInputs.appendChild(questionsContainer);
+        }
+    }
+}
+
 
 function remove(button) {
     const div = button.parentElement;
@@ -583,44 +739,54 @@ function saveConditionFlow() {
 }
 
 function saveQuestions() {
-    const conditionInputs = document.querySelectorAll('.question-condition-input');
-    const textInputs = document.querySelectorAll('.question-text-input');
+    const monologueForm = document.getElementById('add-monologue-state');
+    const dialogueForm = document.getElementById('add-dialogue-state');
+    
+    // Check if monologue form is visible
+    const isMonologueVisible = !monologueForm.classList.contains('hidden');
+    const form = isMonologueVisible ? monologueForm : dialogueForm;
+    
+    const conditionInputs = form.querySelectorAll('.question-condition-input');
+    const textInputs = form.querySelectorAll('.question-text-input');
     const stateQuestions = [];
-
+    
     let conditions = [];
     let texts = [];
-
+    
     // Collect conditions
     conditionInputs.forEach((input, index) => {
         const value = input.value.trim();
-        // Convert "null" string to null value
         const finalValue = (value === "null") ? null : value;
-
-        // Check if all inputs are filled
-        if (value !== '') {
-            const inputType = index % 3; // Determine which input type (1st, 2nd, or 3rd)
-            const groupIndex = Math.floor(index / 3); // Determine group index
-
-            if (!conditions[groupIndex]) {
-                conditions[groupIndex] = [];
-            }
-            conditions[groupIndex][inputType] = finalValue;
+        
+        const inputType = index % 3;
+        const groupIndex = Math.floor(index / 3);
+        
+        if (!conditions[groupIndex]) {
+            conditions[groupIndex] = [];
         }
+        
+        conditions[groupIndex][inputType] = finalValue;
     });
-    // Collect texts
-    textInputs.forEach(input => {
-        if (input.value !== '') {
-            texts.push(input.value);
-        }
-    });
-
-    // Add conditions and texts to stateQuestions
-    if (conditions.length > 0 || texts.length > 0) {
-        stateQuestions.push({ conditions: conditions, text: texts });
-    }
-
-    console.log(stateQuestions);
     
+    const groupedConditions = conditions.map(conditionGroup => conditionGroup.filter(Boolean));
+    
+    // Collect texts
+    textInputs.forEach((input, index) => {
+        const value = input.value.trim();
+        if (value !== '') {
+            texts.push([value]);
+        }
+    });
+    
+    // Merge conditions and texts into stateQuestions
+    for (let i = 0; i < Math.max(groupedConditions.length, texts.length); i++) {
+        stateQuestions.push({
+            conditions: groupedConditions[i] || [],
+            text: texts[i] || []
+        });
+    }
+    
+    console.log("State Questions:", stateQuestions);
     return stateQuestions;
 }
 
@@ -655,8 +821,15 @@ return entities;
 }
 
 function saveResponses() {
-    const conditionInputs = document.querySelectorAll('.response-condition-input');
-    const textInputs = document.querySelectorAll('.response-text-input');
+    const monologueForm = document.getElementById('add-monologue-state');
+    const dialogueForm = document.getElementById('add-dialogue-state');
+
+    // Check if monologue form is visible
+    const isMonologueVisible = !monologueForm.classList.contains('hidden');
+    const form = isMonologueVisible ? monologueForm : dialogueForm;
+
+    const conditionInputs = form.querySelectorAll('.response-condition-input');
+    const textInputs = form.querySelectorAll('.response-text-input');
     const stateResponses = [];
 
     let conditions = [];
@@ -665,35 +838,37 @@ function saveResponses() {
     // Collect conditions
     conditionInputs.forEach((input, index) => {
         const value = input.value.trim();
-        // Convert "null" string to null value
         const finalValue = (value === "null") ? null : value;
 
-        // Check if all inputs are filled
-        if (value !== '') {
-            const inputType = index % 3; // Determine which input type (1st, 2nd, or 3rd)
-            const groupIndex = Math.floor(index / 3); // Determine group index
+        const inputType = index % 3;
+        const groupIndex = Math.floor(index / 3);
 
-            if (!conditions[groupIndex]) {
-                conditions[groupIndex] = [];
-            }
-
-            conditions[groupIndex][inputType] = finalValue;
+        if (!conditions[groupIndex]) {
+            conditions[groupIndex] = [];
         }
+
+        conditions[groupIndex][inputType] = finalValue;
     });
+
+    const groupedConditions = conditions.map(conditionGroup => conditionGroup.filter(Boolean));
+
     // Collect texts
-    textInputs.forEach(input => {
-        if (input.value !== '') {
-            texts.push(input.value);
+    textInputs.forEach((input, index) => {
+        const value = input.value.trim();
+        if (value !== '') {
+            texts.push([value]);
         }
     });
 
-    // Add conditions and texts to stateResponses
-    if (conditions.length > 0 || texts.length > 0) {
-        stateResponses.push({ conditions: conditions, text: texts });
+    // Merge conditions and texts into stateResponses
+    for (let i = 0; i < Math.max(groupedConditions.length, texts.length); i++) {
+        stateResponses.push({
+            conditions: groupedConditions[i] || [],
+            text: texts[i] || []
+        });
     }
 
-    console.log(stateResponses);
-    
+    console.log("State Responses:", stateResponses);
     return stateResponses;
 }
 
