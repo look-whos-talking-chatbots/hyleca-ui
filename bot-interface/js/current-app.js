@@ -393,21 +393,40 @@ function showTextInput(button) {
 }
 
 
-function showTriggersConditionInputs(button){
+function showTriggersConditionInputs(button) {
     const form = button.parentElement.parentElement.parentElement;
+    let triggersConditionElements;
     if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state #triggers-condition').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state #triggers-condition').classList.remove('hidden');
+        triggersConditionElements = document.querySelectorAll('#add-monologue-state #triggers-condition');
+    } else if (form.id === "add-dialogue-state") {
+        triggersConditionElements = document.querySelectorAll('#add-dialogue-state #triggers-condition');
+    }
+
+    if (triggersConditionElements && triggersConditionElements.length > 0) {
+        triggersConditionElements.forEach(element => {
+            element.classList.remove('hidden');
+        });
+    } else {
+        console.error("No elements found for triggers condition inputs");
     }
 }
 
-function showTriggersTriggerInput(button){
+function showTriggersTriggerInput(button) {
     const form = button.parentElement.parentElement.parentElement;
+    let triggerTextElements;
+
     if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state #triggers-trigger').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state #triggers-trigger').classList.remove('hidden');
+        triggerTextElements = document.querySelectorAll('#add-monologue-state #triggers-trigger');
+    } else if (form.id === "add-dialogue-state") {
+        triggerTextElements = document.querySelectorAll('#add-dialogue-state #triggers-trigger');
+    }
+
+    if (triggerTextElements && triggerTextElements.length > 0) {
+        triggerTextElements.forEach(element => {
+            element.classList.remove('hidden');
+        });
+    } else {
+        console.error("No elements found for triggers trigger inputs");
     }
 }
 
@@ -440,7 +459,6 @@ function showQuestionTextInput(button) {
         element.classList.remove('hidden');
     });
 }
-
 
 function addInput(button){
     const container = button.parentElement.parentElement;
@@ -627,6 +645,61 @@ function addQuestionAgain(button) {
     }
 }
 
+function addTriggersAgain(button) {
+    const form = button.parentElement.parentElement;
+    let triggerInputs;
+    if (form.id === "add-monologue-state") {
+        triggerInputs = document.querySelector('#add-monologue-state #triggerInputs');
+    } else if (form.id === "add-dialogue-state") {
+        triggerInputs = document.querySelector('#add-dialogue-state #triggerInputs');
+    }
+    
+    
+    const triggerConditionsContainer = document.createElement('div');
+    triggerConditionsContainer.id = 'trigger-conditions-container';
+    triggerConditionsContainer.innerHTML = `
+        <button type="button" onclick="showTriggersConditionInputs(this)">Add Condition</button>
+    `;
+    
+    const triggersCondition = document.createElement('div');
+    triggersCondition.id = 'triggers-condition';
+    triggersCondition.className = 'input-group hidden';
+    triggersCondition.innerHTML = `
+        <input type="text" class="triggers-condition-input" placeholder="input1">
+        <input type="text" class="triggers-condition-input" placeholder="operator">
+        <input type="text" class="triggers-condition-input" placeholder="null">
+        <button type="button" onclick="addConditionInput(this)">+</button>
+        <button type="button" onclick="remove(this)">-</button>
+    `;
+    const triggersTriggerContainer = document.createElement('div');
+    triggersTriggerContainer.className = 'trigger-container';
+    triggersTriggerContainer.innerHTML = `
+        <button type="button" onclick="showTriggersTriggerInput(this)">Add Trigger</button>
+    `;
+    
+    const triggersTrigger = document.createElement('div');
+    triggersTrigger.id = 'triggers-trigger';
+    triggersTrigger.className = 'input-group hidden';
+    triggersTrigger.innerHTML = `
+        <input type="text" class="trigger-state" placeholder="state">
+        <input type="number" class="trigger-state-id" placeholder="state id">
+        <button type="button" onclick="addTriggerInput(this)">+</button>
+        <button type="button" onclick="remove(this)">-</button>
+    `;
+    
+    triggerInputs.appendChild(triggerConditionsContainer);
+    triggerInputs.appendChild(triggersCondition);
+    triggerInputs.appendChild(triggersTriggerContainer);
+    triggerInputs.appendChild(triggersTrigger);
+    
+    const addButtonTriggers = triggerInputs.querySelector('.addButtonTriggers');
+    const saveTriggersButton = triggerInputs.querySelector('button[onclick="handleButtonTrigger(this)"]');
+    
+    triggerInputs.insertBefore(triggerConditionsContainer, addButtonTriggers);
+    triggerInputs.insertBefore(triggersCondition, addButtonTriggers);
+    triggerInputs.insertBefore(triggersTriggerContainer, addButtonTriggers);
+    triggerInputs.insertBefore(triggersTrigger, addButtonTriggers);
+}
 
 function remove(button) {
     const div = button.parentElement;
@@ -873,9 +946,16 @@ function saveResponses() {
 }
 
 function saveTriggers() {
-    const conditionInputs = document.querySelectorAll('.triggers-condition-input');
-    const triggerStateInputs = document.querySelectorAll('.trigger-state');
-    const triggerStateIdInputs = document.querySelectorAll('.trigger-state-id');
+    const monologueForm = document.getElementById('add-monologue-state');
+    const dialogueForm = document.getElementById('add-dialogue-state');
+
+    // Check if monologue form is visible
+    const isMonologueVisible = !monologueForm.classList.contains('hidden');
+    const form = isMonologueVisible ? monologueForm : dialogueForm;
+
+    const conditionInputs = form.querySelectorAll('.triggers-condition-input');
+    const triggerStateInputs = form.querySelectorAll('.trigger-state');
+    const triggerStateIdInputs = form.querySelectorAll('.trigger-state-id');
     
     const triggers = [];
 
@@ -899,19 +979,22 @@ function saveTriggers() {
         }
     });
 
+    const groupedConditions = conditions.map(conditionGroup => conditionGroup.filter(Boolean));
+
     // Collect triggers
-    for (let i = 0; i < triggerStateInputs.length; i++) {
-        const state = triggerStateInputs[i].value;
-        const stateId = parseInt(triggerStateIdInputs[i].value);
+    triggerStateInputs.forEach((input, index) => {
+        const state = input.value.trim();
+        const stateId = parseInt(triggerStateIdInputs[index].value.trim());
+
         if (state !== '' && !isNaN(stateId)) {
             triggers.push({
-                conditions: conditions,
+                conditions: groupedConditions[index] || [],
                 trigger: [state, stateId]
             });
         }
-    }
-    console.log("Triggers:", triggers);
+    });
 
+    console.log("Triggers:", triggers);
     return triggers;
 }
 
