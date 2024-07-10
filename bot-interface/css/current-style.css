@@ -33,7 +33,7 @@ h2 {
     font-weight: 700;
 }
 
-button:hover {
+button:hover,.state:hover {
     transform: scale(1.1);
 }
 
@@ -128,12 +128,18 @@ nav {
     justify-content: center;
 }
 
-#submitBtn {
+.submitBtn {
     background-color: var(--c-primary);
     border-radius: 8px;
     border: none;
     padding: 1rem;
     margin-top: 10px;
+}
+.addButtonResponse,.addButtonQuestion, .addButtonTriggers{
+    background-color: #e3c4d1;
+}
+.save{
+    background-color: #a2e0b9;
 }
 
 #addFlowButton img,
@@ -284,10 +290,10 @@ nav {
     align-items: center;
 }
 
-.modal-content {
+#modalContentFlow {
     background-color: var(--c-white);
     width: 30rem;
-    height: 28rem;
+    height: 25rem;
     padding: 30px;
     border: 60px solid var(--c-primary);
     border-radius: 20px;
@@ -297,4 +303,36 @@ nav {
     text-align: center;
     z-index: 100;
 }
+#modalContentState {
+    background-color: var(--c-white);
+    width: 65rem;
+    height: 38rem;
+    padding: 30px;
+    border: 60px solid var(--c-primary);
+    border-radius: 20px;
+    position: absolute;
+    top: 2%;
+    left: 14%;
+    text-align: center;
+    z-index: 100;
+}
 
+input{
+    margin: 3px;
+}
+
+.state-structure{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 60rem;
+}
+#state-info-monologue,#state-info-dialogue{
+    display: none;
+    flex-wrap: wrap;
+    gap: 30px;
+    margin-left: 100px;
+}
+#state-info{
+    height: auto;
+}

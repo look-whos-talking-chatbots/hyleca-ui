@@ -12,6 +12,8 @@ let botData = {
     dialogue_flows: []
 };
 
+let featuresState = {};
+
 document.getElementById('downloadIcon').addEventListener('click', function() {
     const jsonContent = JSON.stringify(botData, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
@@ -45,34 +47,39 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const addStateButton = document.getElementById('addStateButton');
     if (addStateButton) {
         addStateButton.addEventListener('click', function() {
-            console.log('Add State Button Clicked');
-            var modalState = document.getElementById('modalOverlayState');
-            modalState.style.display = 'flex';
+            addState();
         });
     } else {
         console.error('addStateButton not found.');
     }
-
-    addEventListenersToStateButtons();
+    
 });
 
-function addEventListenersToStateButtons() {
-    document.getElementById('monologue-state-btn').addEventListener('click', showMonologueForm);
-    document.getElementById('dialogue-state-btn').addEventListener('click', showDialogueForm);
+function addEventListenersToStateButtons(stateId) {
+    document.getElementById('monologue-state-btn').addEventListener('click', function() {
+        showMonologueForm(stateId);
+    });
+    document.getElementById('dialogue-state-btn').addEventListener('click', function() {
+        showDialogueForm(stateId);
+    });
 }
 
-function showMonologueForm() {
+function showMonologueForm(stateId) {
     document.getElementById('monologue-state-btn').classList.add('hidden');
     document.getElementById('dialogue-state-btn').classList.add('hidden');
     document.getElementById('add-monologue-state').classList.remove('hidden');
+    document.getElementById('state-info-monologue').style.display ='flex';
     document.getElementById('add-dialogue-state').classList.add('hidden');
+    editState(stateId);
 }
 
-function showDialogueForm() {
+function showDialogueForm(stateId) {
     document.getElementById('dialogue-state-btn').classList.add('hidden');
     document.getElementById('monologue-state-btn').classList.add('hidden');
     document.getElementById('add-dialogue-state').classList.remove('hidden');
+    document.getElementById('state-info-dialogue').style.display ='flex';
     document.getElementById('add-monologue-state').classList.add('hidden');
+    editState(stateId);
 }
 
 function addFlow() {
@@ -95,7 +102,7 @@ function addFlow() {
     const flowElement = document.createElement('div');
     flowElement.className = 'flow';
     flowElement.innerHTML = `
-        <div class="flow-header">Flow ID: ${flowId}</div>
+        <div class="flow-header">Flow Name: ${flowTitle}</div>
         <button class="toggle-states-button"></button>
     `;
     flowContainer.appendChild(flowElement);
@@ -121,30 +128,10 @@ function addFlow() {
 
     // addStateButton'a event listener ekleme
     addStateButton.addEventListener('click', function() {
-        console.log('Add State Button Clicked');
-        var modalState = document.getElementById('modalOverlayState');
-        modalState.style.display = 'flex';
 
-        const flowIdInputMonologue = document.querySelectorAll('.state-flow-id-monologue');
-        const flowIdInputDialogue = document.querySelectorAll('.state-flow-id-dialogue');
-        
-        if (flowIdInputMonologue.length > 0) {
-            flowIdInputMonologue.forEach(input1 => {
-                input1.value = flowId;  
-            });
-        } else {
-            console.error('No elements with class "state-flow-id-monologue" found.');
-        }
-        
-        if (flowIdInputDialogue.length > 0) {
-            flowIdInputDialogue.forEach(input2 => {
-                input2.value = flowId;  
-            });
-        } else {
-            console.error('No elements with class "state-flow-id-dialogue" found.');
-        }
-        
-        });
+        console.log('Add State Button Clicked');
+        addState();        
+    });
 
     const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
         toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
@@ -160,40 +147,37 @@ function addFlow() {
         });
 }
 
-function addState(stateType) {
-    let stateId, stateFlowId;
-    if(stateType === "monologue"){
-        stateId = document.querySelector('#add-monologue-state #state-id').value;
-        stateFlowId = document.querySelector('#add-monologue-state #state-flow-id').value;
-    }
-    else if(stateType === "dialogue"){
-        stateId = document.querySelector('#add-dialogue-state #state-id').value;
-        stateFlowId = document.querySelector('#add-dialogue-state #state-flow-id').value;
-    }
 
-    // Conditions, Questions, Categories, Entities, Responses, Triggers, MultipleChoice, Generators, Actions
-    const stateConditions = saveConditions();
-    const stateQuestions = saveQuestions();
-    const stateCategories = saveCategories();
-    const stateEntities = saveEntities();
-    const stateResponses = saveResponses();
-    const stateTriggers = saveTriggers();
-    const stateMultipleChoice = saveMultipleChoice();
-    const stateGenerators = saveGenerators();
-    const stateActions = saveActions();
+function addState() {
+    const addStateButton = document.querySelector('#addStateButton');
+    let stateId, stateFlowId, statesContainerId;
+
+    if (addStateButton && addStateButton.parentElement) {
+        statesContainerId = addStateButton.parentElement.id;
+        const regex = /statesContainer-(\d+)/;
+        const match = statesContainerId.match(regex);
+        if (match) {
+            stateFlowId = match[1]; // Extract the captured group (the number)
+            console.log(stateFlowId); // Output: 1111 (if the format matches)
+        } else {
+            console.error('ID does not match the expected format');
+        }
+    } else {
+        console.error('addStateButton element not found or has no parent element');
+    }
 
     const newState = {
-        id: parseInt(stateId),
-        type: stateType,
-        conditions: stateConditions,
-        questions: stateQuestions,
-        categories: stateCategories,
-        entities: stateEntities,
-        responses: stateResponses,
-        triggers: stateTriggers,
-        multipleChoices: stateMultipleChoice,
-        generators: stateGenerators,
-        actions: stateActions
+        id: Math.random(),
+        type: "",
+        conditions: [],
+        questions: [],
+        categories: [],
+        entities: [],
+        responses: [],
+        triggers: [],
+        multipleChoices: [],
+        generators: [],
+        actions: []
     };
 
     // ilgili flow'a state'i ekliyoruz
@@ -202,42 +186,144 @@ function addState(stateType) {
         targetFlow.states.push(newState);
         saveBotData();
     } else {
-            console.error("Target Flow not found for ID:", stateFlowId);
-            return;
-        }
-    const stateContainer = document.getElementById(`'statesContainer-${stateFlowId}'`);
-    if (!stateContainer) {
-        console.error(`State container with ID 'statesContainer-${stateFlowId}' not found.`);
+        console.error("Target Flow not found for ID:", stateFlowId);
         return;
     }
+    const statesContainer = addStateButton.parentElement;
     const stateElement = document.createElement('div');
+    stateElement.id = `${newState.id}`;
     stateElement.className = 'state';
-    stateElement.innerHTML = `<div class="state-header">State ID: ${stateId}</div>
-                            <div class="state-header">State Type: ${stateType}</div>`;
-    stateContainer.appendChild(stateElement);
+    stateElement.innerHTML = `<div class="state-header">State Id: ${newState.id}</div>
+                            <div class="state-header">State Type: ${newState.type}</div>`;
+    stateElement.addEventListener('click', () => {
+        var modal = document.getElementById('modalOverlayState');
+        modal.style.display = 'flex';
+        addEventListenersToStateButtons(newState.id)
 
-    // Ensure the "Add State" button is always at the bottom
-    const addStateButton = stateContainer.querySelector('#addStateButton');
+    });
+
+    statesContainer.appendChild(stateElement);
+
     if (addStateButton) {
-        stateContainer.insertBefore(stateElement, addStateButton);
+        statesContainer.insertBefore(stateElement, addStateButton);
     } else {
-        stateContainer.appendChild(stateElement);
+        statesContainer.appendChild(stateElement);
     }
-
 
     console.log(botData);
     alert('New state added!');
+    addEventListenersToStateButtons(newState.id)
+}
 
-    document.getElementById('addStateForm').reset();
+function editState(stateId) {
+    const saveButtons = document.querySelectorAll('.save');
+    console.log("editstate çalıştı " + stateId);
+    
+    let targetState = null;
+    let targetFlow = null;
+
+    botData.dialogue_flows.forEach(flow => {
+        const state = flow.states.find(state => state.id === stateId);
+        if (state) {
+            targetState = state;
+            targetFlow = flow;
+        }
+    });
+
+    if (!targetState) {
+        console.error(`State with id ${stateId} not found.`);
+        return;
+    }
+
+    saveButtons.forEach(button => {
+        button.onclick = function() {
+            resetInput(this);
+            if (button.id.includes('saveCondition')) {
+                saveConditions(targetState);
+            } else if (button.id.includes('saveQuestion')) {
+                saveQuestions(targetState);
+            } else if (button.id.includes('saveCategory')) {
+                saveCategories(targetState);
+            } else if (button.id.includes('saveEntity')) {
+                saveEntities(targetState);
+            } else if (button.id.includes('saveResponse')) {
+                saveResponses(targetState);
+            } else if (button.id.includes('saveTrigger')) {
+                saveTriggers(targetState);
+            } else if (button.id.includes('saveMultipleChoice')) {
+                saveMultipleChoice(targetState);
+            } else if (button.id.includes('saveGenerator')) {
+                saveGenerators(targetState);
+            } else if (button.id.includes('saveAction')) {
+                saveActions(targetState);
+            }
+        };
+    });
+
+    console.log(targetState);
+    let stateElement;
+    const monologueForm = document.getElementById('add-monologue-state');
+    const dialogueForm = document.getElementById('add-dialogue-state');
+    if (!monologueForm.classList.contains('hidden')) {
+        document.querySelector('#add-monologue-state #state-id').value = stateId;
+        stateElement = document.getElementById('state-info-monologue');
+        targetState.type='monologue';
+    } else if (!dialogueForm.classList.contains('hidden')) {
+        document.querySelector('#add-dialogue-state #state-id').value = stateId;
+        stateElement = document.getElementById('state-info-dialogue');
+        targetState.type='dialogue';
+    }
+    console.log("aaa" + stateElement.id)
+
+    stateElement.innerHTML = '';
+    const stateFeatures = [
+        { label: 'Conditions', value: targetState.conditions },
+        { label: 'Questions', value: targetState.questions },
+        { label: 'Categories', value: targetState.categories },
+        { label: 'Entities', value: targetState.entities },
+        { label: 'Responses', value: targetState.responses },
+        { label: 'Triggers', value: targetState.triggers },
+        { label: 'Multiple Choices', value: targetState.multipleChoices },
+        { label: 'Generators', value: targetState.generators },
+        { label: 'Actions', value: targetState.actions }
+    ];
+
+    stateFeatures.forEach(feature => {
+        const featureContainer = document.createElement('div');
+        const detailElement = document.createElement('p');
+        detailElement.innerHTML = `<strong>${feature.label}:</strong> ${JSON.stringify(feature.value)}`;
+        featureContainer.appendChild(detailElement);
+        stateElement.appendChild(featureContainer);
+    });
+    document.getElementById('editBtnMonologue').addEventListener('click',function(){
+       updateState(targetFlow,targetState)
+    })
+    document.getElementById('editBtnDialogue').addEventListener('click',function(){
+        updateState(targetFlow,targetState)
+     })
+    
+}
+function updateState(targetFlow, updatedState) {
+    console.log("updateState clicked")
+    const stateIndex = targetFlow.states.findIndex(state => state.id === updatedState.id);
+    if (stateIndex !== -1) {
+        targetFlow.states[stateIndex] = updatedState;
+        saveBotData();
+        alert("State updated");
+    } else {
+        console.error(`State with id ${updatedState.id} not found in targetFlow.`);
+    }
+
     document.getElementById('modalOverlayState').style.display = 'none';
 
     document.getElementById('add-monologue-state').classList.add('hidden');
     document.getElementById('add-dialogue-state').classList.add('hidden');
+    document.getElementById('state-info-monologue').style.display ='none';
+    document.getElementById('state-info-dialogue').style.display ='none';
     document.getElementById('monologue-state-btn').classList.remove('hidden');
     document.getElementById('dialogue-state-btn').classList.remove('hidden');
+    console.log(updatedState);
 }
-
-
 
 function saveConditionFlow() {
     const inputs = document.querySelectorAll(".flow-condition-input");
@@ -724,69 +810,7 @@ function resetInput(button) {
         document.querySelector('#add-dialogue-state .featuresContainer').classList.remove('hidden');
     }
 }
-function handleButtonCondition(button) {
-    saveConditions();
-    resetInput(button);
-}
-function handleButtonQuestion(button){
-    saveQuestions();
-    resetInput(button);
-}
-function handleButtonCategory(button){
-    saveCategories();
-    resetInput(button);
-}
-function handleButtonEntity(button){
-    saveEntities();
-    resetInput(button);
-}
-function handleButtonResponse(button){
-    saveResponses();
-    resetInput(button);
-}
-function handleButtonTrigger(button){
-    saveTriggers();
-    resetInput(button);
-}
-function handleButtonMultiple(button){
-    saveMultipleChoice();
-    resetInput(button);
-}
-function handleButtonGenerator(button){
-    saveGenerators();
-    resetInput(button);
-}
-function handleButtonAction(button){
-    saveActions();
-    resetInput(button);
-}
 
-function saveConditions() {
-    const inputs = document.querySelectorAll(".condition-input");
-    const conditions = [];
-
-    inputs.forEach((input, index) => {
-        const value = input.value.trim();
-        // Convert "null" string to null value
-        const finalValue = (value === "null") ? null : value;
-
-        // Check if all inputs are filled
-        if (value !== '') {
-            const inputType = index % 3; // Determine which input type (1st, 2nd, or 3rd)
-            const groupIndex = Math.floor(index / 3); // Determine group index
-
-            if (!conditions[groupIndex]) {
-                conditions[groupIndex] = [];
-            }
-
-            conditions[groupIndex][inputType] = finalValue;
-        }
-    });
-
-    
-
-    return conditions;
-}
 function saveConditionFlow() {
     const inputs = document.querySelectorAll(".flow-condition-input");
     const conditions = [];
@@ -808,10 +832,37 @@ function saveConditionFlow() {
             conditions[groupIndex][inputType] = finalValue;
         }
     });
+    
     return conditions;
 }
 
-function saveQuestions() {
+function saveConditions(state) {
+    const inputs = document.querySelectorAll(".condition-input");
+    const conditions = [];
+
+    inputs.forEach((input, index) => {
+        const value = input.value.trim();
+        // Convert "null" string to null value
+        const finalValue = (value === "null") ? null : value;
+
+        // Check if all inputs are filled
+        if (value !== '') {
+            const inputType = index % 3; // Determine which input type (1st, 2nd, or 3rd)
+            const groupIndex = Math.floor(index / 3); // Determine group index
+
+            if (!conditions[groupIndex]) {
+                conditions[groupIndex] = [];
+            }
+
+            conditions[groupIndex][inputType] = finalValue;
+        }
+    });
+    state.conditions = conditions;
+    editState(state.id);
+    return conditions;
+}
+
+function saveQuestions(state) {
     const monologueForm = document.getElementById('add-monologue-state');
     const dialogueForm = document.getElementById('add-dialogue-state');
     
@@ -860,10 +911,12 @@ function saveQuestions() {
     }
     
     console.log("State Questions:", stateQuestions);
+    state.questions = stateQuestions;
+    editState(state.id);
     return stateQuestions;
 }
 
-function saveCategories() {
+function saveCategories(state) {
     const inputs = document.querySelectorAll(".category-input");
     const categories = [];
     for (let i = 0; i < inputs.length; i += 2) {
@@ -874,11 +927,12 @@ function saveCategories() {
         }
     }
     console.log("Categories:", categories);
-    
-return categories;
+    state.categories = categories;
+    editState(state.id);
+    return categories;
 }
 
-function saveEntities() {
+function saveEntities(state) {
     const inputs = document.querySelectorAll(".entity-input");
     const entities = [];
     for (let i = 0; i < inputs.length; i += 2) {
@@ -889,11 +943,13 @@ function saveEntities() {
         }
     }
     console.log("Entities:", entities);
-    
-return entities;
+    state.entities = entities;
+    console.log(state);
+    editState(state.id);
+    return entities;
 }
 
-function saveResponses() {
+function saveResponses(state) {
     const monologueForm = document.getElementById('add-monologue-state');
     const dialogueForm = document.getElementById('add-dialogue-state');
 
@@ -942,10 +998,12 @@ function saveResponses() {
     }
 
     console.log("State Responses:", stateResponses);
+    state.responses=stateResponses;
+    editState(state.id);
     return stateResponses;
 }
 
-function saveTriggers() {
+function saveTriggers(state) {
     const monologueForm = document.getElementById('add-monologue-state');
     const dialogueForm = document.getElementById('add-dialogue-state');
 
@@ -995,10 +1053,12 @@ function saveTriggers() {
     });
 
     console.log("Triggers:", triggers);
+    state.triggers=triggers;
+    editState(state.id);
     return triggers;
 }
 
-function saveMultipleChoice() {
+function saveMultipleChoice(state) {
     const inputs = document.querySelectorAll(".multipleChoice-input");
     const multipleChoices = [];
     for (let i = 0; i < inputs.length; i += 2) {
@@ -1009,11 +1069,12 @@ function saveMultipleChoice() {
         }
     }
     console.log("MultipleChoices:", multipleChoices);
-   
+    state.multipleChoices=multipleChoices;
+    editState(state.id);
 return multipleChoices;
 }
 
-function saveGenerators() {
+function saveGenerators(state) {
     const inputs = document.querySelectorAll(".generator-input");
     const generators = [];
     for (let i = 0; i < inputs.length; i += 2) {
@@ -1023,12 +1084,13 @@ function saveGenerators() {
         generators.push([input1, input2]);
         }
     }
-    console.log("Generators:", generators);
-     
+    console.log("Generators:", generators);;
+    state.generators=generators;
+    editState(state.id);
 return generators;
 }
 
-function saveActions() {
+function saveActions(state) {
     const inputs = document.querySelectorAll(".action-input");
     const actions = [];
     for (let i = 0; i < inputs.length; i += 2) {
@@ -1039,7 +1101,8 @@ function saveActions() {
         }
     }
     console.log("Actions:", actions);
-    
+    state.actions=actions;
+    editState(state.id);
 return actions;
 
 }
@@ -1071,35 +1134,26 @@ function loadFlows() {
         flowContainer.appendChild(hrElement);
 
         addStateButton.addEventListener('click', function() {
-            console.log('Add State Button Clicked');
-            var modalState = document.getElementById('modalOverlayState');
-            modalState.style.display = 'flex';
-            
-            const flowIdInputMonologue = document.querySelectorAll('.state-flow-id-monologue');
-            const flowIdInputDialogue = document.querySelectorAll('.state-flow-id-dialogue');
-
-            if (flowIdInputMonologue.length > 0) {
-                flowIdInputMonologue.forEach(input1 => {
-                    input1.value = flow.id;
-                });
-            } else {
-                console.error('No elements with class "state-flow-id-monologue" found.');
-            }
-
-            if (flowIdInputDialogue.length > 0) {
-                flowIdInputDialogue.forEach(input2 => {
-                    input2.value = flow.id;
-                });
-            } else {
-                console.error('No elements with class "state-flow-id-dialogue" found.');
-            }
+            addState();
         });
 
         flow.states.forEach(state => {
             const stateElement = document.createElement('div');
-            stateElement.className = 'state';
-            stateElement.innerHTML = `<div class="state-header">State ID: ${state.id}</div>
-                                      <div class="state-header">State Type: ${state.type}</div>`;
+            stateElement.id = `${state.id}`;
+            stateElement.className = 'state';   
+            let stateContent = `<div class="state-header">State Type: ${state.type}</div>`;
+            if (state.type === 'monologue') {
+                stateContent += `<div class="state-responses">Responses: <br> ${JSON.stringify(state.responses)}</div>`;
+            } else if (state.type === 'dialogue') {
+                stateContent += `<div class="state-questions">Questions: <br> ${JSON.stringify(state.questions)}</div>`;
+            }
+            stateElement.innerHTML = stateContent;
+            stateElement.addEventListener('click', () => {
+                var modal = document.getElementById('modalOverlayState');
+                modal.style.display = 'flex';
+                addEventListenersToStateButtons(state.id)
+
+            });
             statesContainer.appendChild(stateElement);
             const addStateButton = statesContainer.querySelector("#addStateButton");
             if (addStateButton) {
@@ -1121,11 +1175,193 @@ function loadFlows() {
                 toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
             }
         });
+        
     });
+   
 }
 
 function saveBotData() {
     localStorage.setItem('botData', JSON.stringify(botData));
 }
+
+// function updateAddedStates(newState) {
+//     const addedStatesDiv = document.getElementById('added-states');
+
+//     let stateElement = document.getElementById('state-info');
+//     if (!stateElement) {
+//         stateElement = document.createElement('div');
+//         stateElement.id = 'state-info';
+//         stateElement.className = 'state';
+//         stateElement.innerHTML = `
+//             <p>State ID: ${newState.id || 'undefined'}</p>
+//             <p>Flow ID: ${newState.flowId || 'undefined'}</p>
+//             <p>Type: ${newState.type || 'undefined'}</p>
+//         `;
+//         addedStatesDiv.appendChild(stateElement);
+//     }
+
+//     const stateDetails = [
+//         { label: 'Conditions', value: newState.conditions },
+//         { label: 'Questions', value: newState.questions },
+//         { label: 'Categories', value: newState.categories },
+//         { label: 'Entities', value: newState.entities },
+//         { label: 'Responses', value: newState.responses },
+//         { label: 'Triggers', value: newState.triggers },
+//         { label: 'Multiple Choices', value: newState.multipleChoices },
+//         { label: 'Generators', value: newState.generators },
+//         { label: 'Actions', value: newState.actions }
+//     ];
+
+//     stateDetails.forEach(detail => {
+//         if (detail.value && detail.value.length > 0) {
+//             const detailContainer = document.createElement('div');
+//             const detailElement = document.createElement('p');
+//             detailElement.innerHTML = `<strong>${detail.label}:</strong> ${JSON.stringify(detail.value)}`;
+//             detailContainer.appendChild(detailElement);
+
+//             const editButton = document.createElement('button');
+//             editButton.innerText = 'Edit';
+//             editButton.addEventListener('click', function(event) {
+//                 event.preventDefault();
+//                 editDetail(detail.label, detail.value);
+//             });
+//             detailContainer.appendChild(editButton);
+
+//             const deleteButton = document.createElement('button');
+//             deleteButton.innerText = 'Delete';
+//             deleteButton.onclick = () => deleteDetail(detail.label);
+//             detailContainer.appendChild(deleteButton);
+
+//             stateElement.appendChild(detailContainer);
+//         }
+//     });
+// }
+
+function editDetail(label, value) {
+    let inputId = null;
+
+    switch (label) {
+        case 'Conditions':
+            inputId = 'conditionInputs';
+            break;
+        case 'Questions':
+            inputId = 'questionInputs';
+            break;
+        case 'Categories':
+            inputId = 'categoryInputs';
+            break;
+        case 'Entities':
+            inputId = 'entityInputs';
+            break;
+        case 'Responses':
+            inputId = 'responseInputs';
+            break;
+        case 'Triggers':
+            inputId = 'triggerInputs';
+            break;
+        case 'Multiple Choices':
+            inputId = 'multipleChoiceInputs';
+            break;
+        case 'Generators':
+            inputId = 'generatorInputs';
+            break;
+        case 'Actions':
+            inputId = 'actionInputs';
+            break;
+        default:
+            console.error(`Unsupported label: ${label}`);
+            return;
+    }
+
+    const button = document.querySelector(".featureBtn");
+    const form = button.parentElement.parentElement;
+
+    if (form.id === "add-monologue-state") {
+        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
+        document.querySelector(`#add-monologue-state #${inputId}`).classList.remove('hidden');
+        document.querySelector(`#add-monologue-state #update-${inputId}`).classList.remove('hidden');
+    } else if (form.id === "add-dialogue-state") {
+        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
+        document.querySelector(`#add-dialogue-state #${inputId}`).classList.remove('hidden');
+        document.querySelector(`#add-dialogue-state #update-${inputId}`).classList.remove('hidden');
+    }
+
+    const inputElement = document.getElementById(inputId);
+    if (!inputElement) {
+        console.error(`Input element not found with ID: ${inputId}`);
+        return;
+    }
+
+    const previousValue = JSON.parse(inputElement.value);
+    Object.assign(previousValue, value); 
+
+    inputElement.value = JSON.stringify(previousValue);
+
+    switch (label) {
+        case 'Conditions':
+            featuresState.conditions = previousValue;
+            break;
+        case 'Questions':
+            featuresState.questions = previousValue;
+            break;
+        case 'Categories':
+            featuresState.categories = previousValue;
+            break;
+        case 'Entities':
+            featuresState.entities = previousValue;
+            break;
+        case 'Responses':
+            featuresState.responses = previousValue;
+            break;
+        case 'Triggers':
+            featuresState.triggers = previousValue;
+            break;
+        case 'Multiple Choices':
+            featuresState.multipleChoices = previousValue;
+            break;
+        case 'Generators':
+            featuresState.generators = previousValue;
+            break;
+        case 'Actions':
+            featuresState.actions = previousValue;
+            break;
+        default:
+            console.error(`Unsupported label: ${label}`);
+            return;
+    }
+}
+
+function updateStateFeature(button) {
+    const form = button.parentElement;
+    const inputFields = form.querySelectorAll('.condition-input');
+    const updatedValues = Array.from(inputFields).map(input => input.value);
+
+    const label = 'Conditions'; 
+    switch (label) {
+        case 'Conditions':
+            featuresState.conditions = updatedValues;
+            break;
+        default:
+            console.error(`Unsupported label: ${label}`);
+            return;
+    }
+
+    form.classList.add('hidden');
+
+    return updatedValues;
+}
+
+function saveEdit() {
+    // Implement save logic here
+    console.log('Save edit');
+    closeEditModal();
+}
+
+function closeEditModal() {
+    const editModal = document.getElementById('editModal');
+    editModal.classList.add('hidden');
+}
+
+
 
 
