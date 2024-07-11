@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const savedBotData = localStorage.getItem('botData');
     if (savedBotData) {
         botData = JSON.parse(savedBotData);
-        loadFlows();
+        // loadFlows();
     }
     // Set initial bot name and description
     document.getElementById('botName').textContent = botData.name + "-Bot";
@@ -55,32 +55,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     
 });
 
-function addEventListenersToStateButtons(stateId) {
-    document.getElementById('monologue-state-btn').addEventListener('click', function() {
-        showMonologueForm(stateId);
-    });
-    document.getElementById('dialogue-state-btn').addEventListener('click', function() {
-        showDialogueForm(stateId);
-    });
-}
-
-function showMonologueForm(stateId) {
-    document.getElementById('monologue-state-btn').classList.add('hidden');
-    document.getElementById('dialogue-state-btn').classList.add('hidden');
-    document.getElementById('add-monologue-state').classList.remove('hidden');
-    document.getElementById('state-info-monologue').style.display ='flex';
-    document.getElementById('add-dialogue-state').classList.add('hidden');
-    editState(stateId);
-}
-
-function showDialogueForm(stateId) {
-    document.getElementById('dialogue-state-btn').classList.add('hidden');
-    document.getElementById('monologue-state-btn').classList.add('hidden');
-    document.getElementById('add-dialogue-state').classList.remove('hidden');
-    document.getElementById('state-info-dialogue').style.display ='flex';
-    document.getElementById('add-monologue-state').classList.add('hidden');
-    editState(stateId);
-}
 
 function addFlow() {
     const flowId = document.getElementById('flowId').value;
@@ -128,37 +102,35 @@ function addFlow() {
 
     // addStateButton'a event listener ekleme
     addStateButton.addEventListener('click', function() {
-
         console.log('Add State Button Clicked');
         addState();        
     });
 
     const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
-        toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
+    toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
 
-        toggleStatesButton.addEventListener('click', function () {
-            if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
-                statesContainer.style.display = 'none';
-                toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
-            } else {
-                statesContainer.style.display = 'flex';
-                toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
-            }
-        });
+    toggleStatesButton.addEventListener('click', function () {
+        if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
+            statesContainer.style.display = 'none';
+            toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
+        } else {
+            statesContainer.style.display = 'flex';
+            toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
+        }
+    });
 }
-
 
 function addState() {
     const addStateButton = document.querySelector('#addStateButton');
-    let stateId, stateFlowId, statesContainerId;
+    let stateFlowId, statesContainerId;
 
     if (addStateButton && addStateButton.parentElement) {
         statesContainerId = addStateButton.parentElement.id;
         const regex = /statesContainer-(\d+)/;
         const match = statesContainerId.match(regex);
         if (match) {
-            stateFlowId = match[1]; // Extract the captured group (the number)
-            console.log(stateFlowId); // Output: 1111 (if the format matches)
+            stateFlowId = match[1];
+            console.log(stateFlowId); 
         } else {
             console.error('ID does not match the expected format');
         }
@@ -168,6 +140,7 @@ function addState() {
 
     const newState = {
         id: Math.random(),
+        title:"",
         type: "",
         conditions: [],
         questions: [],
@@ -196,10 +169,7 @@ function addState() {
     stateElement.innerHTML = `<div class="state-header">State Id: ${newState.id}</div>
                             <div class="state-header">State Type: ${newState.type}</div>`;
     stateElement.addEventListener('click', () => {
-        var modal = document.getElementById('modalOverlayState');
-        modal.style.display = 'flex';
-        addEventListenersToStateButtons(newState.id)
-
+        editState(newState.id)
     });
 
     statesContainer.appendChild(stateElement);
@@ -212,10 +182,12 @@ function addState() {
 
     console.log(botData);
     alert('New state added!');
-    addEventListenersToStateButtons(newState.id)
 }
 
 function editState(stateId) {
+    var modal = document.getElementById('modalOverlayState');
+    modal.style.display = 'flex';
+
     const saveButtons = document.querySelectorAll('.save');
     console.log("editstate çalıştı " + stateId);
     
@@ -259,20 +231,11 @@ function editState(stateId) {
             }
         };
     });
-
     console.log(targetState);
-    let stateElement;
-    const monologueForm = document.getElementById('add-monologue-state');
-    const dialogueForm = document.getElementById('add-dialogue-state');
-    if (!monologueForm.classList.contains('hidden')) {
-        document.querySelector('#add-monologue-state #state-id').value = stateId;
-        stateElement = document.getElementById('state-info-monologue');
-        targetState.type='monologue';
-    } else if (!dialogueForm.classList.contains('hidden')) {
-        document.querySelector('#add-dialogue-state #state-id').value = stateId;
-        stateElement = document.getElementById('state-info-dialogue');
-        targetState.type='dialogue';
-    }
+    // document.getElementById('state-id').value = state.id;
+    // targetState.type = document.getElementById('stateType').value;
+    const stateElement = document.getElementById('state-info');
+   
     console.log("aaa" + stateElement.id)
 
     stateElement.innerHTML = '';
@@ -295,18 +258,20 @@ function editState(stateId) {
         featureContainer.appendChild(detailElement);
         stateElement.appendChild(featureContainer);
     });
-    document.getElementById('editBtnMonologue').addEventListener('click',function(){
+    document.getElementById('editBtn').addEventListener('click',function(){
        updateState(targetFlow,targetState)
     })
-    document.getElementById('editBtnDialogue').addEventListener('click',function(){
-        updateState(targetFlow,targetState)
-     })
     
 }
 function updateState(targetFlow, updatedState) {
-    console.log("updateState clicked")
+    console.log(updatedState.id)
+    const stateName = document.getElementById('state-name');
+    updatedState.title = stateName.value;
+    const stateType = document.getElementById('state-type');
+    updatedState.type = stateType.value;
     const stateIndex = targetFlow.states.findIndex(state => state.id === updatedState.id);
     if (stateIndex !== -1) {
+        console.log("stateIndex"+stateIndex);
         targetFlow.states[stateIndex] = updatedState;
         saveBotData();
         alert("State updated");
@@ -316,12 +281,8 @@ function updateState(targetFlow, updatedState) {
 
     document.getElementById('modalOverlayState').style.display = 'none';
 
-    document.getElementById('add-monologue-state').classList.add('hidden');
-    document.getElementById('add-dialogue-state').classList.add('hidden');
-    document.getElementById('state-info-monologue').style.display ='none';
-    document.getElementById('state-info-dialogue').style.display ='none';
-    document.getElementById('monologue-state-btn').classList.remove('hidden');
-    document.getElementById('dialogue-state-btn').classList.remove('hidden');
+    document.getElementById('add-state').classList.add('hidden');
+    document.getElementById('state-info').style.display ='none';
     console.log(updatedState);
 }
 
@@ -351,199 +312,26 @@ function saveConditionFlow() {
 
 // State Features Operations
 
+function showFeatureInputs(featureId) {
+    document.querySelectorAll('.featuresContainer').forEach(container => {
+        container.classList.add('hidden');
+    });
 
-function showConditionInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #conditionInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #conditionInputs').classList.remove('hidden');
-    }
-}
-
-function showQuestionInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #questionInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #questionInputs').classList.remove('hidden');
-    }
-}
-
-function showCategoryInputs(button) {
-    console.log("çalıştı")
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #categoryInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #categoryInputs').classList.remove('hidden');
-    }
-}
-
-function showEntityInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #entityInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #entityInputs').classList.remove('hidden');
-    }
-}
-
-function showResponseInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #responseInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #responseInputs').classList.remove('hidden');
-    }
-}
-
-function showTriggerInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #triggerInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #triggerInputs').classList.remove('hidden');
-    }
-}
-
-function showMultipleChoiceInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #multipleChoiceInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #multipleChoiceInputs').classList.remove('hidden');
-    }
-}
-
-function showGeneratorInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #generatorInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #generatorInputs').classList.remove('hidden');
-    }
-}
-
-function showActionInputs(button) {
-    const form = button.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-monologue-state #actionInputs').classList.remove('hidden');
-    }else if (form.id === "add-dialogue-state"){
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector('#add-dialogue-state #actionInputs').classList.remove('hidden');
-    }
-}
-
-function showResponseConditionInputs(button) {
-    const form = button.parentElement.parentElement.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelectorAll('#add-monologue-state #response-condition').forEach(element => {
-            element.classList.remove('hidden');
-        });
-    } else if (form.id === "add-dialogue-state") {
-        document.querySelectorAll('#add-dialogue-state #response-condition').forEach(element => {
-            element.classList.remove('hidden');
-        });
-    }
-}
-
-function showTextInput(button) {
-    const form = button.parentElement.parentElement.parentElement.parentElement;
-    if (form.id === "add-monologue-state") {
-        document.querySelectorAll('#add-monologue-state #response-text').forEach(element => {
-            element.classList.remove('hidden');
-        });
-    } else if (form.id === "add-dialogue-state") {
-        document.querySelectorAll('#add-dialogue-state #response-text').forEach(element => {
-            element.classList.remove('hidden');
-        });
-    }
-}
-
-
-function showTriggersConditionInputs(button) {
-    const form = button.parentElement.parentElement.parentElement;
-    let triggersConditionElements;
-    if (form.id === "add-monologue-state") {
-        triggersConditionElements = document.querySelectorAll('#add-monologue-state #triggers-condition');
-    } else if (form.id === "add-dialogue-state") {
-        triggersConditionElements = document.querySelectorAll('#add-dialogue-state #triggers-condition');
-    }
-
-    if (triggersConditionElements && triggersConditionElements.length > 0) {
-        triggersConditionElements.forEach(element => {
-            element.classList.remove('hidden');
-        });
-    } else {
-        console.error("No elements found for triggers condition inputs");
-    }
-}
-
-function showTriggersTriggerInput(button) {
-    const form = button.parentElement.parentElement.parentElement;
-    let triggerTextElements;
-
-    if (form.id === "add-monologue-state") {
-        triggerTextElements = document.querySelectorAll('#add-monologue-state #triggers-trigger');
-    } else if (form.id === "add-dialogue-state") {
-        triggerTextElements = document.querySelectorAll('#add-dialogue-state #triggers-trigger');
-    }
-
-    if (triggerTextElements && triggerTextElements.length > 0) {
-        triggerTextElements.forEach(element => {
-            element.classList.remove('hidden');
-        });
-    } else {
-        console.error("No elements found for triggers trigger inputs");
-    }
-}
-
-function showQuestionConditionInputs(button) {
-    const form = button.parentElement.parentElement.parentElement.parentElement;
-    let questionConditionElements;
-    
-    if (form.id === "add-monologue-state") {
-        questionConditionElements = document.querySelectorAll('#add-monologue-state #question-condition');
-    } else if (form.id === "add-dialogue-state") {
-        questionConditionElements = document.querySelectorAll('#add-dialogue-state #question-condition');
-    }
-    
-    questionConditionElements.forEach(element => {
-        element.classList.remove('hidden');
+    document.querySelectorAll(`#${featureId}`).forEach(featureInput => {
+        featureInput.classList.remove('hidden');
     });
 }
 
-function showQuestionTextInput(button) {
-    const form = button.parentElement.parentElement.parentElement.parentElement;
-    let questionTextElements;
-    
-    if (form.id === "add-monologue-state") {
-        questionTextElements = document.querySelectorAll('#add-monologue-state #question-text');
-    } else if (form.id === "add-dialogue-state") {
-        questionTextElements = document.querySelectorAll('#add-dialogue-state #question-text');
+function showSpecificFeatureInputs(featureId) {
+    const elements = document.querySelectorAll(`#${featureId}`);
+
+    if (elements.length > 0) {
+        elements.forEach(element => {
+            element.classList.remove('hidden');
+        });
+    } else {
+        console.error(`No elements found for ${featureId}`);
     }
-    
-    questionTextElements.forEach(element => {
-        element.classList.remove('hidden');
-    });
 }
 
 function addInput(button){
@@ -599,21 +387,15 @@ function addTriggerInput(button){
 }
 
 function addResponseAgain(button){
-    const form = button.parentElement.parentElement;
-    let responseInputs;
-    if (form.id === "add-monologue-state") {
-        responseInputs = document.querySelector('#add-monologue-state #responseInputs');
+    const responseInputs=document.getElementById('responseInputs')
 
-    } else if (form.id === "add-dialogue-state") {
-        responseInputs = document.querySelector('#add-dialogue-state #responseInputs');
-    }
     const responsecontainer = document.createElement('div');
     responsecontainer.id= 'responses-container';
     
     const conditionsContainer = document.createElement('div');
     conditionsContainer.id = 'conditions-container';
     conditionsContainer.innerHTML = `
-        <button type="button" onclick="showResponseConditionInputs(this)">Add Condition</button>
+        <button type="button" onclick="showSpecificFeatureInputs('response-condition')">Add Condition</button>
     `;
     
     const responseCondition = document.createElement('div');
@@ -630,7 +412,7 @@ function addResponseAgain(button){
     const textContainer = document.createElement('div');
     textContainer.id = 'text-container';
     textContainer.innerHTML = `
-        <button type="button" onclick="showTextInput(this)">Add Text</button>
+        <button type="button" onclick="showSpecificFeatureInputs('response-text')">Add Text</button>
     `;
     
     const responseText = document.createElement('div');
@@ -646,33 +428,17 @@ function addResponseAgain(button){
     responsecontainer.appendChild(responseCondition);
     responsecontainer.appendChild(textContainer);
     responsecontainer.appendChild(responseText);
-    
-    if (form.id === "add-monologue-state") {
-        const firstButton = responseInputs.querySelector('#add-monologue-state .addButtonResponse');
-        if (firstButton) {
-            responseInputs.insertBefore(responsecontainer, firstButton);
-        } else {
-            responseInputs.appendChild(responsecontainer);
-        }
-    } else if (form.id === "add-dialogue-state") {
-        const firstButton = responseInputs.querySelector('#add-dialogue-state .addButtonResponse');
-        if (firstButton) {
-            responseInputs.insertBefore(responsecontainer, firstButton);
-        } else {
-            responseInputs.appendChild(responsecontainer);
-        }
+
+    const firstButton = responseInputs.querySelector('.addButtonResponse');
+    if (firstButton) {
+        responseInputs.insertBefore(responsecontainer, firstButton);
+    } else {
+        responseInputs.appendChild(responsecontainer);
     }
 }
 
 function addQuestionAgain(button) {
-    const form = button.parentElement.parentElement;
-    let questionInputs;
-    
-    if (form.id === "add-monologue-state") {
-        questionInputs = document.querySelector('#add-monologue-state #questionInputs');
-    } else if (form.id === "add-dialogue-state") {
-        questionInputs = document.querySelector('#add-dialogue-state #questionInputs');
-    }
+    const questionInputs =document.getElementById('questionInputs');
     
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
@@ -680,7 +446,7 @@ function addQuestionAgain(button) {
     const questionConditionsContainer = document.createElement('div');
     questionConditionsContainer.id = 'question-conditions-container';
     questionConditionsContainer.innerHTML = `
-        <button type="button" onclick="showQuestionConditionInputs(this)">Add Condition</button>
+        <button type="button" onclick="showSpecificFeatureInputs('question-condition')">Add Condition</button>
     `;
     
     const questionCondition = document.createElement('div');
@@ -697,7 +463,7 @@ function addQuestionAgain(button) {
     const questionTextContainer = document.createElement('div');
     questionTextContainer.id = 'question-text-container';
     questionTextContainer.innerHTML = `
-        <button type="button" onclick="showQuestionTextInput(this)">Add Text</button>
+        <button type="button" onclick="showSpecificFeatureInputs('question-text')">Add Text</button>
     `;
     
     const questionText = document.createElement('div');
@@ -714,37 +480,23 @@ function addQuestionAgain(button) {
     questionsContainer.appendChild(questionTextContainer);
     questionsContainer.appendChild(questionText);
     
-    if (form.id === "add-monologue-state") {
-        const firstButton = questionInputs.querySelector('#add-monologue-state .addButtonQuestion');
-        if (firstButton) {
-            questionInputs.insertBefore(questionsContainer, firstButton);
-        } else {
-            questionInputs.appendChild(questionsContainer);
-        }
-    } else if (form.id === "add-dialogue-state") {
-        const firstButton = questionInputs.querySelector('#add-dialogue-state .addButtonQuestion');
-        if (firstButton) {
-            questionInputs.insertBefore(questionsContainer, firstButton);
-        } else {
-            questionInputs.appendChild(questionsContainer);
-        }
+ 
+    const firstButton = questionInputs.querySelector('.addButtonQuestion');
+    if (firstButton) {
+        questionInputs.insertBefore(questionsContainer, firstButton);
+    } else {
+        questionInputs.appendChild(questionsContainer);
     }
+
 }
 
 function addTriggersAgain(button) {
-    const form = button.parentElement.parentElement;
-    let triggerInputs;
-    if (form.id === "add-monologue-state") {
-        triggerInputs = document.querySelector('#add-monologue-state #triggerInputs');
-    } else if (form.id === "add-dialogue-state") {
-        triggerInputs = document.querySelector('#add-dialogue-state #triggerInputs');
-    }
-    
-    
+    const triggerInputs = document.getElementById('triggerInputs');
+
     const triggerConditionsContainer = document.createElement('div');
     triggerConditionsContainer.id = 'trigger-conditions-container';
     triggerConditionsContainer.innerHTML = `
-        <button type="button" onclick="showTriggersConditionInputs(this)">Add Condition</button>
+        <button type="button" onclick="showSpecificFeatureInputs('triggers-condition')">Add Condition</button>
     `;
     
     const triggersCondition = document.createElement('div');
@@ -760,7 +512,7 @@ function addTriggersAgain(button) {
     const triggersTriggerContainer = document.createElement('div');
     triggersTriggerContainer.className = 'trigger-container';
     triggersTriggerContainer.innerHTML = `
-        <button type="button" onclick="showTriggersTriggerInput(this)">Add Trigger</button>
+        <button type="button" onclick="showSpecificFeatureInputs('triggers-trigger')">Add Trigger</button>
     `;
     
     const triggersTrigger = document.createElement('div');
@@ -773,13 +525,7 @@ function addTriggersAgain(button) {
         <button type="button" onclick="remove(this)">-</button>
     `;
     
-    triggerInputs.appendChild(triggerConditionsContainer);
-    triggerInputs.appendChild(triggersCondition);
-    triggerInputs.appendChild(triggersTriggerContainer);
-    triggerInputs.appendChild(triggersTrigger);
-    
     const addButtonTriggers = triggerInputs.querySelector('.addButtonTriggers');
-    const saveTriggersButton = triggerInputs.querySelector('button[onclick="handleButtonTrigger(this)"]');
     
     triggerInputs.insertBefore(triggerConditionsContainer, addButtonTriggers);
     triggerInputs.insertBefore(triggersCondition, addButtonTriggers);
@@ -793,22 +539,13 @@ function remove(button) {
 }
 
 function resetInput(button) {
-    const form = button.parentElement.parentElement;
     const inputTypeId = button.parentElement.id;
-
-    if (form.id === "add-monologue-state") {
-        const targetElement = document.querySelector(`#${form.id} #${inputTypeId}`);
-        if (targetElement) {
-            targetElement.classList.add('hidden');
-        }
-        document.querySelector('#add-monologue-state .featuresContainer').classList.remove('hidden');
-    } else if (form.id === "add-dialogue-state") {
-        const targetElement = document.querySelector(`#${form.id} #${inputTypeId}`);
-        if (targetElement) {
-            targetElement.classList.add('hidden');
-        }
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.remove('hidden');
+    const targetElement = document.getElementById(`${inputTypeId}`);
+    if (targetElement) {
+        targetElement.classList.add('hidden');
     }
+    document.querySelector('.featuresContainer').classList.remove('hidden');
+
 }
 
 function saveConditionFlow() {
@@ -863,15 +600,8 @@ function saveConditions(state) {
 }
 
 function saveQuestions(state) {
-    const monologueForm = document.getElementById('add-monologue-state');
-    const dialogueForm = document.getElementById('add-dialogue-state');
-    
-    // Check if monologue form is visible
-    const isMonologueVisible = !monologueForm.classList.contains('hidden');
-    const form = isMonologueVisible ? monologueForm : dialogueForm;
-    
-    const conditionInputs = form.querySelectorAll('.question-condition-input');
-    const textInputs = form.querySelectorAll('.question-text-input');
+    const conditionInputs = document.querySelectorAll('.question-condition-input');
+    const textInputs = document.querySelectorAll('.question-text-input');
     const stateQuestions = [];
     
     let conditions = [];
@@ -950,15 +680,8 @@ function saveEntities(state) {
 }
 
 function saveResponses(state) {
-    const monologueForm = document.getElementById('add-monologue-state');
-    const dialogueForm = document.getElementById('add-dialogue-state');
-
-    // Check if monologue form is visible
-    const isMonologueVisible = !monologueForm.classList.contains('hidden');
-    const form = isMonologueVisible ? monologueForm : dialogueForm;
-
-    const conditionInputs = form.querySelectorAll('.response-condition-input');
-    const textInputs = form.querySelectorAll('.response-text-input');
+    const conditionInputs = document.querySelectorAll('.response-condition-input');
+    const textInputs = document.querySelectorAll('.response-text-input');
     const stateResponses = [];
 
     let conditions = [];
@@ -1004,16 +727,9 @@ function saveResponses(state) {
 }
 
 function saveTriggers(state) {
-    const monologueForm = document.getElementById('add-monologue-state');
-    const dialogueForm = document.getElementById('add-dialogue-state');
-
-    // Check if monologue form is visible
-    const isMonologueVisible = !monologueForm.classList.contains('hidden');
-    const form = isMonologueVisible ? monologueForm : dialogueForm;
-
-    const conditionInputs = form.querySelectorAll('.triggers-condition-input');
-    const triggerStateInputs = form.querySelectorAll('.trigger-state');
-    const triggerStateIdInputs = form.querySelectorAll('.trigger-state-id');
+    const conditionInputs = document.querySelectorAll('.triggers-condition-input');
+    const triggerStateInputs = document.querySelectorAll('.trigger-state');
+    const triggerStateIdInputs = document.querySelectorAll('.trigger-state-id');
     
     const triggers = [];
 
@@ -1107,135 +823,82 @@ return actions;
 
 }
 
-function loadFlows() {
-    const flowContainer = document.getElementById('flowsContainer');
-    flowContainer.innerHTML = '';
+// function loadFlows() {
+//     const flowContainer = document.getElementById('flowsContainer');
+//     flowContainer.innerHTML = '';
 
-    botData.dialogue_flows.forEach(flow => {
-        const flowElement = document.createElement('div');
-        flowElement.className = 'flow';
-        flowElement.innerHTML = `
-            <div class="flow-header">Flow ID: ${flow.id}</div>
-            <button class="toggle-states-button"></button>
-        `;
-        flowContainer.appendChild(flowElement);
+//     botData.dialogue_flows.forEach(flow => {
+//         const flowElement = document.createElement('div');
+//         flowElement.className = 'flow';
+//         flowElement.innerHTML = `
+//             <div class="flow-header">Flow ID: ${flow.id}</div>
+//             <button class="toggle-states-button"></button>
+//         `;
+//         flowContainer.appendChild(flowElement);
 
-        const statesContainer = document.createElement('div');
-        statesContainer.id = `statesContainer-${flow.id}`;
-        statesContainer.className = 'states-container';
-        flowContainer.appendChild(statesContainer);
+//         const statesContainer = document.createElement('div');
+//         statesContainer.id = `statesContainer-${flow.id}`;
+//         statesContainer.className = 'states-container';
+//         flowContainer.appendChild(statesContainer);
 
-        const addStateButton = document.createElement('button');
-        addStateButton.id = "addStateButton";
-        addStateButton.textContent = "Add State";
-        statesContainer.appendChild(addStateButton);
+//         const addStateButton = document.createElement('button');
+//         addStateButton.id = "addStateButton";
+//         addStateButton.textContent = "Add State";
+//         statesContainer.appendChild(addStateButton);
 
-        const hrElement = document.createElement('hr');
-        flowContainer.appendChild(hrElement);
+//         const hrElement = document.createElement('hr');
+//         flowContainer.appendChild(hrElement);
 
-        addStateButton.addEventListener('click', function() {
-            addState();
-        });
+//         addStateButton.addEventListener('click', function() {
+//             addState();
+//         });
 
-        flow.states.forEach(state => {
-            const stateElement = document.createElement('div');
-            stateElement.id = `${state.id}`;
-            stateElement.className = 'state';   
-            let stateContent = `<div class="state-header">State Type: ${state.type}</div>`;
-            if (state.type === 'monologue') {
-                stateContent += `<div class="state-responses">Responses: <br> ${JSON.stringify(state.responses)}</div>`;
-            } else if (state.type === 'dialogue') {
-                stateContent += `<div class="state-questions">Questions: <br> ${JSON.stringify(state.questions)}</div>`;
-            }
-            stateElement.innerHTML = stateContent;
-            stateElement.addEventListener('click', () => {
-                var modal = document.getElementById('modalOverlayState');
-                modal.style.display = 'flex';
-                addEventListenersToStateButtons(state.id)
+//         flow.states.forEach(state => {
+//             const stateElement = document.createElement('div');
+//             stateElement.id = `${state.id}`;
+//             stateElement.className = 'state';   
+//             let stateContent = `<div class="state-header">State Type: ${state.type}</div>`;
+//             if (state.type === 'monologue') {
+//                 stateContent += `<div class="state-responses">Responses: <br> ${JSON.stringify(state.responses)}</div>`;
+//             } else if (state.type === 'dialogue') {
+//                 stateContent += `<div class="state-questions">Questions: <br> ${JSON.stringify(state.questions)}</div>`;
+//             }
+//             stateElement.innerHTML = stateContent;
+//             stateElement.addEventListener('click', () => {
+//                 var modal = document.getElementById('modalOverlayState');
+//                 modal.style.display = 'flex';
+//                 addEventListenersToStateButtons(state.id)
 
-            });
-            statesContainer.appendChild(stateElement);
-            const addStateButton = statesContainer.querySelector("#addStateButton");
-            if (addStateButton) {
-                statesContainer.insertBefore(stateElement, addStateButton);
-            } else {
-                statesContainer.appendChild(stateElement);
-            }
-        });
+//             });
+//             statesContainer.appendChild(stateElement);
+//             const addStateButton = statesContainer.querySelector("#addStateButton");
+//             if (addStateButton) {
+//                 statesContainer.insertBefore(stateElement, addStateButton);
+//             } else {
+//                 statesContainer.appendChild(stateElement);
+//             }
+//         });
 
-        const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
-        toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
+//         const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
+//         toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
 
-        toggleStatesButton.addEventListener('click', function () {
-            if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
-                statesContainer.style.display = 'none';
-                toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
-            } else {
-                statesContainer.style.display = 'flex';
-                toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
-            }
-        });
+//         toggleStatesButton.addEventListener('click', function () {
+//             if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
+//                 statesContainer.style.display = 'none';
+//                 toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
+//             } else {
+//                 statesContainer.style.display = 'flex';
+//                 toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
+//             }
+//         });
         
-    });
+//     });
    
-}
+// }
 
 function saveBotData() {
     localStorage.setItem('botData', JSON.stringify(botData));
 }
-
-// function updateAddedStates(newState) {
-//     const addedStatesDiv = document.getElementById('added-states');
-
-//     let stateElement = document.getElementById('state-info');
-//     if (!stateElement) {
-//         stateElement = document.createElement('div');
-//         stateElement.id = 'state-info';
-//         stateElement.className = 'state';
-//         stateElement.innerHTML = `
-//             <p>State ID: ${newState.id || 'undefined'}</p>
-//             <p>Flow ID: ${newState.flowId || 'undefined'}</p>
-//             <p>Type: ${newState.type || 'undefined'}</p>
-//         `;
-//         addedStatesDiv.appendChild(stateElement);
-//     }
-
-//     const stateDetails = [
-//         { label: 'Conditions', value: newState.conditions },
-//         { label: 'Questions', value: newState.questions },
-//         { label: 'Categories', value: newState.categories },
-//         { label: 'Entities', value: newState.entities },
-//         { label: 'Responses', value: newState.responses },
-//         { label: 'Triggers', value: newState.triggers },
-//         { label: 'Multiple Choices', value: newState.multipleChoices },
-//         { label: 'Generators', value: newState.generators },
-//         { label: 'Actions', value: newState.actions }
-//     ];
-
-//     stateDetails.forEach(detail => {
-//         if (detail.value && detail.value.length > 0) {
-//             const detailContainer = document.createElement('div');
-//             const detailElement = document.createElement('p');
-//             detailElement.innerHTML = `<strong>${detail.label}:</strong> ${JSON.stringify(detail.value)}`;
-//             detailContainer.appendChild(detailElement);
-
-//             const editButton = document.createElement('button');
-//             editButton.innerText = 'Edit';
-//             editButton.addEventListener('click', function(event) {
-//                 event.preventDefault();
-//                 editDetail(detail.label, detail.value);
-//             });
-//             detailContainer.appendChild(editButton);
-
-//             const deleteButton = document.createElement('button');
-//             deleteButton.innerText = 'Delete';
-//             deleteButton.onclick = () => deleteDetail(detail.label);
-//             detailContainer.appendChild(deleteButton);
-
-//             stateElement.appendChild(detailContainer);
-//         }
-//     });
-// }
 
 function editDetail(label, value) {
     let inputId = null;
@@ -1276,15 +939,10 @@ function editDetail(label, value) {
     const button = document.querySelector(".featureBtn");
     const form = button.parentElement.parentElement;
 
-    if (form.id === "add-monologue-state") {
-        document.querySelector('#add-monologue-state .featuresContainer').classList.add('hidden');
-        document.querySelector(`#add-monologue-state #${inputId}`).classList.remove('hidden');
-        document.querySelector(`#add-monologue-state #update-${inputId}`).classList.remove('hidden');
-    } else if (form.id === "add-dialogue-state") {
-        document.querySelector('#add-dialogue-state .featuresContainer').classList.add('hidden');
-        document.querySelector(`#add-dialogue-state #${inputId}`).classList.remove('hidden');
-        document.querySelector(`#add-dialogue-state #update-${inputId}`).classList.remove('hidden');
-    }
+    document.querySelector('.featuresContainer').classList.add('hidden');
+    document.querySelector(`#${inputId}`).classList.remove('hidden');
+    document.querySelector(`#update-${inputId}`).classList.remove('hidden');
+
 
     const inputElement = document.getElementById(inputId);
     if (!inputElement) {
@@ -1361,6 +1019,7 @@ function closeEditModal() {
     const editModal = document.getElementById('editModal');
     editModal.classList.add('hidden');
 }
+
 
 
 

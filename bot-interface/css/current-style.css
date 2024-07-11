@@ -327,12 +327,18 @@ input{
     justify-content: space-between;
     width: 60rem;
 }
-#state-info-monologue,#state-info-dialogue{
-    display: none;
+#state-info{
+    display: flex;
     flex-wrap: wrap;
     gap: 30px;
     margin-left: 100px;
+    width: 400px;
 }
 #state-info{
     height: auto;
+}
+
+.state-type-container{
+    left: 50%;
+    position: relative;
 }
