@@ -252,15 +252,19 @@
                                 <button type="button" onclick="showSpecificFeatureInputs('triggers-trigger')">Add Triggers</button>
                             </div>
                             <div id="triggers-trigger" class="input-group hidden">
-                                <input type="text" class="trigger-state" placeholder="state">
-                                <input class="trigger-state-id" placeholder="state id">
+                                <select class="trigger-state">
+                                    <option value="flow">Flow</option>
+                                    <option value="state">State</option>
+                                </select>
+                                <input class="trigger-state-id" placeholder="Name">
                                 <button type="button" onclick="addTriggerInput(this)">+</button>
                             </div>
                         </div>
-
+                    
                         <button type="button" class="addButtonTriggers" onclick="addTriggersAgain(this)">Add Trigger</button>
                         <button type="button" class="save" id="saveTrigger">Save Triggers</button>
                     </div>
+                    
                     <div id="multipleChoiceInputs" class="hidden">
                         <h3>Edit MultipleChoice</h3>
                         <div id="multipleChoice-container">

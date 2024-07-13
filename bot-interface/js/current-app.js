@@ -12,8 +12,6 @@ let botData = {
     dialogue_flows: []
 };
 
-let featuresState = {};
-
 document.getElementById('downloadIcon').addEventListener('click', function() {
     const jsonContent = JSON.stringify(botData, null, 2);
     const blob = new Blob([jsonContent], { type: 'application/json' });
@@ -24,7 +22,6 @@ document.getElementById('downloadIcon').addEventListener('click', function() {
     downloadLink.click();
     document.body.removeChild(downloadLink);
 
-    populateTriggerStateOptions();
 });
 
 
@@ -35,7 +32,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         botData = JSON.parse(savedBotData);
         // loadFlows();
     }
-    // Set initial bot name and description
     document.getElementById('botName').textContent = botData.name + "-Bot";
     document.getElementById('botDescription').textContent = botData.description;
 
@@ -56,59 +52,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
     }
     
 });
-function populateTriggerStateOptions() {
-    let triggerStateSelect = document.querySelector('.trigger-state');
-    
-    // Clear previous options
-    triggerStateSelect.innerHTML = '';
-    
-    // Populate with flow titles and state titles
-    botData.dialogue_flows.forEach(flow => {
-        let option = document.createElement('option');
-        option.value = flow.title;
-        option.textContent = flow.title;
-        triggerStateSelect.appendChild(option);
-        
-        flow.states.forEach(state => {
-            let option = document.createElement('option');
-            option.value = state.title;
-            option.textContent = state.title;
-            triggerStateSelect.appendChild(option);
-        });
-    });
-}
-
-// document.addEventListener("DOMContentLoaded", function() {
-//     let triggerStateInput = document.querySelector(".trigger-state");
-//     let triggerStateIdInput = document.querySelector(".trigger-state-id");
-
-//     // Example event listener for input change
-//     triggerStateInput.addEventListener("input", function() {
-//         let title = triggerStateInput.value;
-//         let stateId = findTriggerIdByTitle(title);
-//         if (stateId) {
-//             triggerStateIdInput.value = stateId;
-//         } else {
-//             triggerStateIdInput.value = "";
-//         }
-//     });
-// });
-// function findTriggerIdByTitle(title) {
-//     for (let flow of botData.dialogue_flows) {
-//         for (let state of flow.states) {
-//             if (state.title === title) {
-//                 return state.id;
-//             }
-//         }
-//     }
-    
-//     for (let flow of botData.dialogue_flows) {
-//         if (flow.title === title) {
-//             return flow.id;
-//         }
-//     }
-//     return null;
-// }
 
 
 function addFlow() {
@@ -624,7 +567,7 @@ function addTriggersAgain(button) {
             <option value="in">in</option>
             <option value="!in">!in</option>
         </select>
-        <input type="text" class="triggers-condition-input" placeholder="null">
+        <input type="text" class="triggers-condition-input" placeholder="value">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -636,11 +579,14 @@ function addTriggersAgain(button) {
     `;
 
     const triggersTrigger = document.createElement('div');
-    triggersTrigger.id='triggers-trigger';
+    triggersTrigger.id = 'triggers-trigger';
     triggersTrigger.className = 'input-group hidden';
     triggersTrigger.innerHTML = `
-        <input type="text" class="trigger-state" placeholder="state">
-        <input type="number" class="trigger-state-id" placeholder="state id">
+        <select class="trigger-state">
+            <option value="flow">Flow</option>
+            <option value="state">State</option>
+        </select>
+        <input class="trigger-state-id" placeholder="Name">
         <button type="button" onclick="addTriggerInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -938,9 +884,20 @@ function saveTriggers(state) {
 
         // Collect trigger state
         const selectedStateOrFlow = triggerStateInputs[index].value.trim();
-        const stateId = parseInt(triggerStateIdInputs[index].value.trim());
+        const title = triggerStateIdInputs[index].value.trim();
+        let stateId = null;
 
-        if (selectedStateOrFlow !== '' && !isNaN(stateId)) {
+        if (selectedStateOrFlow === 'state') {
+            const targetState = botData.dialogue_flows
+                .flatMap(flow => flow.states)
+                .find(state => state.title === title);
+            stateId = targetState ? targetState.id : null;
+        } else if (selectedStateOrFlow === 'flow') {
+            const targetFlow = botData.dialogue_flows.find(flow => flow.title === title);
+            stateId = targetFlow ? targetFlow.id : null;
+        }
+
+        if (selectedStateOrFlow !== '' && stateId !== null) {
             triggers.push({
                 conditions: conditions.filter(Boolean), // Remove empty conditions
                 trigger: [selectedStateOrFlow, stateId]
@@ -974,10 +931,14 @@ function setTriggerValues(state) {
             triggerStateInputs[index].value = triggerData.trigger[0] || '';
         }
         if (triggerStateIdInputs[index]) {
-            triggerStateIdInputs[index].value = triggerData.trigger[1] || '';
+            const title = triggerData.trigger[0] === 'state' ?
+                botData.dialogue_flows.flatMap(flow => flow.states).find(state => state.id === triggerData.trigger[1])?.title :
+                botData.dialogue_flows.find(flow => flow.id === triggerData.trigger[1])?.title;
+            triggerStateIdInputs[index].value = title || '';
         }
     });
 }
+
 
 function saveMultipleChoice(state) {
     const inputs = document.querySelectorAll(".multipleChoice-input");
@@ -1072,125 +1033,9 @@ function saveBotData() {
     localStorage.setItem('botData', JSON.stringify(botData));
 }
 
-function editDetail(label, value) {
-    let inputId = null;
-
-    switch (label) {
-        case 'Conditions':
-            inputId = 'conditionInputs';
-            break;
-        case 'Questions':
-            inputId = 'questionInputs';
-            break;
-        case 'Categories':
-            inputId = 'categoryInputs';
-            break;
-        case 'Entities':
-            inputId = 'entityInputs';
-            break;
-        case 'Responses':
-            inputId = 'responseInputs';
-            break;
-        case 'Triggers':
-            inputId = 'triggerInputs';
-            break;
-        case 'Multiple Choices':
-            inputId = 'multipleChoiceInputs';
-            break;
-        case 'Generators':
-            inputId = 'generatorInputs';
-            break;
-        case 'Actions':
-            inputId = 'actionInputs';
-            break;
-        default:
-            console.error(`Unsupported label: ${label}`);
-            return;
-    }
-
-    const button = document.querySelector(".featureBtn");
-    const form = button.parentElement.parentElement;
-
-    document.querySelector('.featuresContainer').classList.add('hidden');
-    document.querySelector(`#${inputId}`).classList.remove('hidden');
-    document.querySelector(`#update-${inputId}`).classList.remove('hidden');
 
 
-    const inputElement = document.getElementById(inputId);
-    if (!inputElement) {
-        console.error(`Input element not found with ID: ${inputId}`);
-        return;
-    }
 
-    const previousValue = JSON.parse(inputElement.value);
-    Object.assign(previousValue, value); 
-
-    inputElement.value = JSON.stringify(previousValue);
-
-    switch (label) {
-        case 'Conditions':
-            featuresState.conditions = previousValue;
-            break;
-        case 'Questions':
-            featuresState.questions = previousValue;
-            break;
-        case 'Categories':
-            featuresState.categories = previousValue;
-            break;
-        case 'Entities':
-            featuresState.entities = previousValue;
-            break;
-        case 'Responses':
-            featuresState.responses = previousValue;
-            break;
-        case 'Triggers':
-            featuresState.triggers = previousValue;
-            break;
-        case 'Multiple Choices':
-            featuresState.multipleChoices = previousValue;
-            break;
-        case 'Generators':
-            featuresState.generators = previousValue;
-            break;
-        case 'Actions':
-            featuresState.actions = previousValue;
-            break;
-        default:
-            console.error(`Unsupported label: ${label}`);
-            return;
-    }
-}
-
-function updateStateFeature(button) {
-    const form = button.parentElement;
-    const inputFields = form.querySelectorAll('.condition-input');
-    const updatedValues = Array.from(inputFields).map(input => input.value);
-
-    const label = 'Conditions'; 
-    switch (label) {
-        case 'Conditions':
-            featuresState.conditions = updatedValues;
-            break;
-        default:
-            console.error(`Unsupported label: ${label}`);
-            return;
-    }
-
-    form.classList.add('hidden');
-
-    return updatedValues;
-}
-
-function saveEdit() {
-    // Implement save logic here
-    console.log('Save edit');
-    closeEditModal();
-}
-
-function closeEditModal() {
-    const editModal = document.getElementById('editModal');
-    editModal.classList.add('hidden');
-}
 
 
 
