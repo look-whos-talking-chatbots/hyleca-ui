@@ -207,6 +207,7 @@ function editState(stateId) {
         return;
     }
 
+
     saveButtons.forEach(button => {
         button.onclick = function() {
             resetInput(this);
@@ -269,6 +270,9 @@ function updateState(targetFlow, updatedState) {
     updatedState.title = stateName.value;
     const stateType = document.getElementById('state-type');
     updatedState.type = stateType.value;
+
+    setConditionValues(updateState);
+
     const stateIndex = targetFlow.states.findIndex(state => state.id === updatedState.id);
     if (stateIndex !== -1) {
         console.log("stateIndex"+stateIndex);
@@ -280,9 +284,6 @@ function updateState(targetFlow, updatedState) {
     }
 
     document.getElementById('modalOverlayState').style.display = 'none';
-
-    document.getElementById('add-state').classList.add('hidden');
-    document.getElementById('state-info').style.display ='none';
     console.log(updatedState);
 }
 
@@ -334,13 +335,14 @@ function showSpecificFeatureInputs(featureId) {
     }
 }
 
-function addInput(button){
+function addInput(button) {
     const container = button.parentElement.parentElement;
+    const inputClass = button.parentElement.querySelector('input').className;
     const div = document.createElement("div");
     div.className = "input-group";
     div.innerHTML = `
-        <input type="text" class="entity-input" placeholder="input1">
-        <input type="text" class="entity-input" placeholder="input2">
+        <input type="text" class="${inputClass}" placeholder="input1">
+        <input type="text" class="${inputClass}" placeholder="input2">
         <button type="button" onclick="addInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -349,24 +351,34 @@ function addInput(button){
 
 function addConditionInput(button) {
     const container = button.parentElement;
+    const inputClass = button.parentElement.querySelector('input').className;
     const div = document.createElement("div");
     div.className = "input-group";
     div.innerHTML = `
-        <input type="text" class="flow-condition-input" placeholder="input1">
-        <input type="text" class="flow-condition-input" placeholder="operator">
-        <input type="text" class="flow-condition-input" placeholder="null">
+        <input type="text" class="${inputClass}" placeholder="input1">
+        <select class="${inputClass}">
+            <option value="!=">!=</option>
+            <option value=">">&gt;</option>
+            <option value="<">&lt;</option>
+            <option value=">=">&gt;=</option>
+            <option value="<=">&lt;=</option>
+            <option value="in">in</option>
+            <option value="!in">!in</option>
+        </select>
+        <input type="text" class="${inputClass}" placeholder="null">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
     container.appendChild(div);
 }
 
-function addTextInput(button){
+function addTextInput(button) {
     const container = button.parentElement.parentElement;
+    const inputClass = button.parentElement.querySelector('input').className;
     const div = document.createElement("div");
     div.className = "input-group";
     div.innerHTML = `
-        <input type="text" class="question-text-input" placeholder="text">
+        <input type="text" class="${inputClass}" placeholder="text">
         <button type="button" onclick="addTextInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -374,7 +386,7 @@ function addTextInput(button){
 }
 
 function addTriggerInput(button){
-    const container = button.parentElement;
+    const container = button.parentElement.parentElement;
     const div = document.createElement("div");
     div.className = "input-group";
     div.innerHTML = `
@@ -403,7 +415,15 @@ function addResponseAgain(button){
     responseCondition.className = 'input-group hidden';
     responseCondition.innerHTML = `
         <input type="text" class="response-condition-input" placeholder="input1">
-        <input type="text" class="response-condition-input" placeholder="operator">
+        <select type="text" class="response-condition-input" placeholder="operator">
+            <option value="!=">!=</option>
+                <option value=">">&gt;</option>
+                <option value="<">&lt;</option>
+                <option value=">=">&gt;=</option>
+                <option value="<=">&lt;=</option>
+                <option value="in">in</option>
+                <option value="!in">!in</option>
+            </select>
         <input type="text" class="response-condition-input" placeholder="null">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
@@ -438,7 +458,7 @@ function addResponseAgain(button){
 }
 
 function addQuestionAgain(button) {
-    const questionInputs =document.getElementById('questionInputs');
+    const questionInputs = document.getElementById('questionInputs');
     
     const questionsContainer = document.createElement('div');
     questionsContainer.id = 'questions-container';
@@ -454,7 +474,15 @@ function addQuestionAgain(button) {
     questionCondition.className = 'input-group hidden';
     questionCondition.innerHTML = `
         <input type="text" class="question-condition-input" placeholder="input1">
-        <input type="text" class="question-condition-input" placeholder="operator">
+        <select class="question-condition-input" placeholder="operator">
+            <option value="!=">!=</option>
+            <option value=">">&gt;</option>
+            <option value="<">&lt;</option>
+            <option value=">=">&gt;=</option>
+            <option value="<=">&lt;=</option>
+            <option value="in">in</option>
+            <option value="!in">!in</option>
+        </select>
         <input type="text" class="question-condition-input" placeholder="null">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
@@ -480,43 +508,88 @@ function addQuestionAgain(button) {
     questionsContainer.appendChild(questionTextContainer);
     questionsContainer.appendChild(questionText);
     
- 
     const firstButton = questionInputs.querySelector('.addButtonQuestion');
     if (firstButton) {
         questionInputs.insertBefore(questionsContainer, firstButton);
     } else {
         questionInputs.appendChild(questionsContainer);
     }
-
 }
+
+function saveQuestions(state) {
+    const questionContainers = document.querySelectorAll('#questions-container');
+    const stateQuestions = [];
+
+    questionContainers.forEach((container, index) => {
+        const conditions = [];
+        const conditionInputs = container.querySelectorAll('.question-condition-input');
+        
+        // Collect conditions
+        for (let i = 0; i < conditionInputs.length; i += 3) {
+            const condition = [
+                conditionInputs[i].value.trim(),
+                conditionInputs[i + 1].value.trim(),
+                conditionInputs[i + 2].value.trim()
+            ].map(value => value === "null" ? null : value);
+            conditions.push(condition);
+        }
+
+        // Collect texts
+        const textInputs = container.querySelectorAll('.question-text-input');
+        const texts = Array.from(textInputs).map(input => input.value.trim()).filter(value => value !== '');
+
+        stateQuestions.push({
+            conditions: conditions.filter(Boolean), // Remove empty conditions
+            text: texts
+        });
+    });
+
+    console.log("State Questions:", stateQuestions);
+    state.questions = stateQuestions;
+    editState(state.id); // Assuming a function to edit state
+    return stateQuestions;
+}
+
 
 function addTriggersAgain(button) {
     const triggerInputs = document.getElementById('triggerInputs');
 
+    const triggersContainer = document.createElement('div');
+    triggersContainer.className = 'triggers-container';
+
     const triggerConditionsContainer = document.createElement('div');
-    triggerConditionsContainer.id = 'trigger-conditions-container';
+    triggerConditionsContainer.className = 'trigger-conditions-container';
     triggerConditionsContainer.innerHTML = `
         <button type="button" onclick="showSpecificFeatureInputs('triggers-condition')">Add Condition</button>
     `;
-    
+
     const triggersCondition = document.createElement('div');
     triggersCondition.id = 'triggers-condition';
     triggersCondition.className = 'input-group hidden';
     triggersCondition.innerHTML = `
         <input type="text" class="triggers-condition-input" placeholder="input1">
-        <input type="text" class="triggers-condition-input" placeholder="operator">
+        <select class="triggers-condition-input" placeholder="operator">
+            <option value="!=">!=</option>
+            <option value=">">&gt;</option>
+            <option value="<">&lt;</option>
+            <option value=">=">&gt;=</option>
+            <option value="<=">&lt;=</option>
+            <option value="in">in</option>
+            <option value="!in">!in</option>
+        </select>
         <input type="text" class="triggers-condition-input" placeholder="null">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
+
     const triggersTriggerContainer = document.createElement('div');
     triggersTriggerContainer.className = 'trigger-container';
     triggersTriggerContainer.innerHTML = `
         <button type="button" onclick="showSpecificFeatureInputs('triggers-trigger')">Add Trigger</button>
     `;
-    
+
     const triggersTrigger = document.createElement('div');
-    triggersTrigger.id = 'triggers-trigger';
+    triggersTrigger.id='triggers-trigger';
     triggersTrigger.className = 'input-group hidden';
     triggersTrigger.innerHTML = `
         <input type="text" class="trigger-state" placeholder="state">
@@ -524,13 +597,15 @@ function addTriggersAgain(button) {
         <button type="button" onclick="addTriggerInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
-    
+
     const addButtonTriggers = triggerInputs.querySelector('.addButtonTriggers');
+
+    triggersContainer.appendChild(triggerConditionsContainer);
+    triggersContainer.appendChild(triggersCondition);
+    triggersContainer.appendChild(triggersTriggerContainer);
+    triggersContainer.appendChild(triggersTrigger);
     
-    triggerInputs.insertBefore(triggerConditionsContainer, addButtonTriggers);
-    triggerInputs.insertBefore(triggersCondition, addButtonTriggers);
-    triggerInputs.insertBefore(triggersTriggerContainer, addButtonTriggers);
-    triggerInputs.insertBefore(triggersTrigger, addButtonTriggers);
+    triggerInputs.insertBefore(triggersContainer, addButtonTriggers);
 }
 
 function remove(button) {
@@ -579,12 +654,11 @@ function saveConditions(state) {
 
     inputs.forEach((input, index) => {
         const value = input.value.trim();
-        // Convert "null" string to null value
         const finalValue = (value === "null") ? null : value;
 
         // Check if all inputs are filled
         if (value !== '') {
-            const inputType = index % 3; // Determine which input type (1st, 2nd, or 3rd)
+            const inputType = index % 3; 
             const groupIndex = Math.floor(index / 3); // Determine group index
 
             if (!conditions[groupIndex]) {
@@ -598,51 +672,53 @@ function saveConditions(state) {
     editState(state.id);
     return conditions;
 }
+function setConditionValues(state) {
+    const inputs = document.querySelectorAll(".condition-input");
+    const conditions = state.conditions;
 
-function saveQuestions(state) {
-    const conditionInputs = document.querySelectorAll('.question-condition-input');
-    const textInputs = document.querySelectorAll('.question-text-input');
-    const stateQuestions = [];
-    
-    let conditions = [];
-    let texts = [];
-    
-    // Collect conditions
-    conditionInputs.forEach((input, index) => {
-        const value = input.value.trim();
-        const finalValue = (value === "null") ? null : value;
-        
-        const inputType = index % 3;
-        const groupIndex = Math.floor(index / 3);
-        
-        if (!conditions[groupIndex]) {
-            conditions[groupIndex] = [];
-        }
-        
-        conditions[groupIndex][inputType] = finalValue;
-    });
-    
-    const groupedConditions = conditions.map(conditionGroup => conditionGroup.filter(Boolean));
-    
-    // Collect texts
-    textInputs.forEach((input, index) => {
-        const value = input.value.trim();
-        if (value !== '') {
-            texts.push([value]);
-        }
-    });
-    
-    // Merge conditions and texts into stateQuestions
-    for (let i = 0; i < Math.max(groupedConditions.length, texts.length); i++) {
-        stateQuestions.push({
-            conditions: groupedConditions[i] || [],
-            text: texts[i] || []
+    if (conditions && conditions.length) {
+        inputs.forEach((input, index) => {
+            const groupIndex = Math.floor(index / 3);
+            const inputType = index % 3;
+
+            if (conditions[groupIndex] && conditions[groupIndex][inputType] !== undefined) {
+                input.value = conditions[groupIndex][inputType] === null ? 'null' : conditions[groupIndex][inputType];
+            }
         });
     }
-    
+}
+
+function saveQuestions(state) {
+    const questionContainers = document.querySelectorAll('#questions-container');
+    const stateQuestions = [];
+
+    questionContainers.forEach((container, index) => {
+        const conditions = [];
+        const conditionInputs = container.querySelectorAll('.question-condition-input');
+        
+        // Collect conditions
+        for (let i = 0; i < conditionInputs.length; i += 3) {
+            const condition = [
+                conditionInputs[i].value.trim(),
+                conditionInputs[i + 1].value.trim(),
+                conditionInputs[i + 2].value.trim()
+            ].map(value => value === "null" ? null : value);
+            conditions.push(condition);
+        }
+
+        // Collect texts
+        const textInputs = container.querySelectorAll('.question-text-input');
+        const texts = Array.from(textInputs).map(input => input.value.trim()).filter(value => value !== '');
+
+        stateQuestions.push({
+            conditions: conditions.filter(Boolean), // Remove empty conditions
+            text: texts
+        });
+    });
+
     console.log("State Questions:", stateQuestions);
     state.questions = stateQuestions;
-    editState(state.id);
+    editState(state.id); // Assuming a function to edit state
     return stateQuestions;
 }
 
@@ -680,97 +756,81 @@ function saveEntities(state) {
 }
 
 function saveResponses(state) {
-    const conditionInputs = document.querySelectorAll('.response-condition-input');
-    const textInputs = document.querySelectorAll('.response-text-input');
+    const conditionGroups = document.querySelectorAll('#response-condition');
+    const textGroups = document.querySelectorAll('#response-text');
     const stateResponses = [];
 
-    let conditions = [];
-    let texts = [];
-
-    // Collect conditions
-    conditionInputs.forEach((input, index) => {
-        const value = input.value.trim();
-        const finalValue = (value === "null") ? null : value;
-
-        const inputType = index % 3;
-        const groupIndex = Math.floor(index / 3);
-
-        if (!conditions[groupIndex]) {
-            conditions[groupIndex] = [];
+    conditionGroups.forEach((conditionGroup, index) => {
+        const conditions = [];
+        const inputs = conditionGroup.querySelectorAll('.response-condition-input');
+        
+        // Collect conditions
+        for (let i = 0; i < inputs.length; i += 3) {
+            const condition = [
+                inputs[i].value.trim(),
+                inputs[i + 1].value.trim(),
+                inputs[i + 2].value.trim()
+            ].map(value => value === "null" ? null : value);
+            conditions.push(condition);
         }
 
-        conditions[groupIndex][inputType] = finalValue;
-    });
-
-    const groupedConditions = conditions.map(conditionGroup => conditionGroup.filter(Boolean));
-
-    // Collect texts
-    textInputs.forEach((input, index) => {
-        const value = input.value.trim();
-        if (value !== '') {
-            texts.push([value]);
-        }
-    });
-
-    // Merge conditions and texts into stateResponses
-    for (let i = 0; i < Math.max(groupedConditions.length, texts.length); i++) {
-        stateResponses.push({
-            conditions: groupedConditions[i] || [],
-            text: texts[i] || []
+        // Collect texts
+        const texts = [];
+        const textInputs = textGroups[index].querySelectorAll('.response-text-input');
+        textInputs.forEach(input => {
+            const value = input.value.trim();
+            if (value !== '') {
+                texts.push(value);
+            }
         });
-    }
+
+        stateResponses.push({
+            conditions: conditions.filter(Boolean), // Remove empty conditions
+            text: texts
+        });
+    });
 
     console.log("State Responses:", stateResponses);
-    state.responses=stateResponses;
+    state.responses = stateResponses;
     editState(state.id);
     return stateResponses;
 }
 
 function saveTriggers(state) {
-    const conditionInputs = document.querySelectorAll('.triggers-condition-input');
+    const conditionGroups = document.querySelectorAll('#triggers-condition');
     const triggerStateInputs = document.querySelectorAll('.trigger-state');
     const triggerStateIdInputs = document.querySelectorAll('.trigger-state-id');
-    
     const triggers = [];
 
-    // Collect conditions
-    const conditions = [];
-    conditionInputs.forEach((input, index) => {
-        const value = input.value.trim();
-        // Convert "null" string to null value
-        const finalValue = (value === "null") ? null : value;
-
-        // Check if all inputs are filled
-        if (value !== '') {
-            const inputType = index % 3; // Determine which input type (1st, 2nd, or 3rd)
-            const groupIndex = Math.floor(index / 3); // Determine group index
-
-            if (!conditions[groupIndex]) {
-                conditions[groupIndex] = [];
-            }
-
-            conditions[groupIndex][inputType] = finalValue;
+    conditionGroups.forEach((conditionGroup, index) => {
+        const conditions = [];
+        const inputs = conditionGroup.querySelectorAll('.triggers-condition-input');
+        
+        // Collect conditions
+        for (let i = 0; i < inputs.length; i += 3) {
+            const condition = [
+                inputs[i].value.trim(),
+                inputs[i + 1].value.trim(),
+                inputs[i + 2].value.trim()
+            ].map(value => value === "null" ? null : value);
+            conditions.push(condition);
         }
-    });
 
-    const groupedConditions = conditions.map(conditionGroup => conditionGroup.filter(Boolean));
-
-    // Collect triggers
-    triggerStateInputs.forEach((input, index) => {
-        const state = input.value.trim();
+        // Collect trigger state
+        const state = triggerStateInputs[index].value.trim();
         const stateId = parseInt(triggerStateIdInputs[index].value.trim());
 
         if (state !== '' && !isNaN(stateId)) {
             triggers.push({
-                conditions: groupedConditions[index] || [],
+                conditions: conditions.filter(Boolean), // Remove empty conditions
                 trigger: [state, stateId]
             });
         }
     });
 
     console.log("Triggers:", triggers);
-    state.triggers=triggers;
-    editState(state.id);
+    state.triggers = triggers;
+    editState(state.id); // Assuming a function to edit state
     return triggers;
 }
 
@@ -822,79 +882,6 @@ function saveActions(state) {
 return actions;
 
 }
-
-// function loadFlows() {
-//     const flowContainer = document.getElementById('flowsContainer');
-//     flowContainer.innerHTML = '';
-
-//     botData.dialogue_flows.forEach(flow => {
-//         const flowElement = document.createElement('div');
-//         flowElement.className = 'flow';
-//         flowElement.innerHTML = `
-//             <div class="flow-header">Flow ID: ${flow.id}</div>
-//             <button class="toggle-states-button"></button>
-//         `;
-//         flowContainer.appendChild(flowElement);
-
-//         const statesContainer = document.createElement('div');
-//         statesContainer.id = `statesContainer-${flow.id}`;
-//         statesContainer.className = 'states-container';
-//         flowContainer.appendChild(statesContainer);
-
-//         const addStateButton = document.createElement('button');
-//         addStateButton.id = "addStateButton";
-//         addStateButton.textContent = "Add State";
-//         statesContainer.appendChild(addStateButton);
-
-//         const hrElement = document.createElement('hr');
-//         flowContainer.appendChild(hrElement);
-
-//         addStateButton.addEventListener('click', function() {
-//             addState();
-//         });
-
-//         flow.states.forEach(state => {
-//             const stateElement = document.createElement('div');
-//             stateElement.id = `${state.id}`;
-//             stateElement.className = 'state';   
-//             let stateContent = `<div class="state-header">State Type: ${state.type}</div>`;
-//             if (state.type === 'monologue') {
-//                 stateContent += `<div class="state-responses">Responses: <br> ${JSON.stringify(state.responses)}</div>`;
-//             } else if (state.type === 'dialogue') {
-//                 stateContent += `<div class="state-questions">Questions: <br> ${JSON.stringify(state.questions)}</div>`;
-//             }
-//             stateElement.innerHTML = stateContent;
-//             stateElement.addEventListener('click', () => {
-//                 var modal = document.getElementById('modalOverlayState');
-//                 modal.style.display = 'flex';
-//                 addEventListenersToStateButtons(state.id)
-
-//             });
-//             statesContainer.appendChild(stateElement);
-//             const addStateButton = statesContainer.querySelector("#addStateButton");
-//             if (addStateButton) {
-//                 statesContainer.insertBefore(stateElement, addStateButton);
-//             } else {
-//                 statesContainer.appendChild(stateElement);
-//             }
-//         });
-
-//         const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
-//         toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
-
-//         toggleStatesButton.addEventListener('click', function () {
-//             if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
-//                 statesContainer.style.display = 'none';
-//                 toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
-//             } else {
-//                 statesContainer.style.display = 'flex';
-//                 toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
-//             }
-//         });
-        
-//     });
-   
-// }
 
 function saveBotData() {
     localStorage.setItem('botData', JSON.stringify(botData));

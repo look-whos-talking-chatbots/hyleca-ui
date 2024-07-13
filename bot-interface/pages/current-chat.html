@@ -47,10 +47,17 @@
                     <div id="conditions-flow">
                         <div class="input-group">
                             <input type="text" class="flow-condition-input" placeholder="input1">
-                            <input type="text" class="flow-condition-input" placeholder="operator">
+                            <select type="text" class="flow-condition-input" placeholder="operator">
+                                <option value="!=">!=</option>
+                                <option value=">">&gt;</option>
+                                <option value="<">&lt;</option>
+                                <option value=">=">&gt;=</option>
+                                <option value="<=">&lt;=</option>
+                                <option value="in">in</option>
+                                <option value="!in">!in</option>
+                            </select>
                             <input type="text" class="flow-condition-input" placeholder="null">
                             <button type="button" onclick="addConditionInput(this)">+</button>
-                            <button type="button" onclick="remove(this)">-</button>
                         </div>
                     </div>
                     <button type="button" onclick="saveConditionFlow()">Save Conditions</button>
@@ -119,12 +126,20 @@
                         <h3>Edit Conditions</h3>
                         <div id="conditions-container">
                             <div class="input-group">
-                                <input type="text" class="condition-input" placeholder="input1">
-                                <input type="text" class="condition-input" placeholder="operator">
-                                <input type="text" class="condition-input" placeholder="null">
+                                <input type="text" id="condition-input1" class="condition-input" placeholder="input1">
+                                <select id="condition-operator" class="condition-input">
+                                    <option value="!=">!=</option>
+                                    <option value=">">&gt;</option>
+                                    <option value="<">&lt;</option>
+                                    <option value=">=">&gt;=</option>
+                                    <option value="<=">&lt;=</option>
+                                    <option value="in">in</option>
+                                    <option value="!in">!in</option>
+                                </select>
+                                <input type="text" id="condition-input2"class="condition-input" placeholder="null">
                                 <button type="button" onclick="addConditionInput(this)">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
                             </div>
+                            
                         </div>
                         <button type="button" class="save" id="saveCondition">Save Conditions</button>
                     </div>
@@ -135,19 +150,25 @@
                                 <button type="button" onclick="showSpecificFeatureInputs('question-condition')">Add Condition</button>
                             </div>
                             <div id="question-condition" class="input-group hidden">
-                                <input type="text" class="question-condition-input" placeholder="input1">
-                                <input type="text" class="question-condition-input" placeholder="operator">
-                                <input type="text" class="question-condition-input" placeholder="null">
+                                <input type="text" id="question-input1" class="question-condition-input" placeholder="input1">
+                                <select type="text" id="question-operator" class="question-condition-input" placeholder="operator">
+                                    <option value="!=">!=</option>
+                                    <option value=">">&gt;</option>
+                                    <option value="<">&lt;</option>
+                                    <option value=">=">&gt;=</option>
+                                    <option value="<=">&lt;=</option>
+                                    <option value="in">in</option>
+                                    <option value="!in">!in</option>
+                                </select>
+                                <input type="text" id="question-input2" class="question-condition-input" placeholder="null">
                                 <button type="button" onclick="addConditionInput(this)">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
                             </div>
                             <div id="question-text-container">
                                 <button type="button" onclick="showSpecificFeatureInputs('question-text')">Add Text</button>
                             </div>
                             <div id="question-text" class="input-group hidden">
-                                <input type="text" class="question-text-input" placeholder="text">
+                                <input type="text" id="question-text" class="question-text-input" placeholder="text">
                                 <button type="button" onclick="addTextInput(this)">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
                             </div>
                         </div>
                         <button type="button" class="addButtonQuestion" onclick="addQuestionAgain(this)">Add Question</button>
@@ -160,7 +181,6 @@
                                 <input type="text" id="category-input" class="category-input" placeholder="input1">
                                 <input type="text" id="category-input" class="category-input" placeholder="input2">
                                 <button type="button" onclick="addInput(this)">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
                             </div>
 
                         </div>
@@ -173,7 +193,6 @@
                                 <input type="text" class="entity-input" placeholder="input1">
                                 <input type="text" class="entity-input" placeholder="input2">
                                 <button type="button" onclick="addInput(this)">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
                             </div>
                         </div>
                         <button type="button" class="save" id="saveEntity">Save Entities</button>
@@ -186,10 +205,17 @@
                             </div>
                             <div id="response-condition" class="input-group hidden">
                                 <input type="text" class="response-condition-input" placeholder="input1">
-                                <input type="text" class="response-condition-input" placeholder="operator">
+                                <select type="text" class="response-condition-input" placeholder="operator">
+                                    <option value="!=">!=</option>
+                                    <option value=">">&gt;</option>
+                                    <option value="<">&lt;</option>
+                                    <option value=">=">&gt;=</option>
+                                    <option value="<=">&lt;=</option>
+                                    <option value="in">in</option>
+                                    <option value="!in">!in</option>
+                                </select>
                                 <input type="text" class="response-condition-input" placeholder="null">
                                 <button type="button" onclick="addConditionInput(this)">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
                             </div>
                             <div id="text-container">
                                 <button type="button" onclick="showSpecificFeatureInputs('response-text')">Add Text</button>
@@ -197,7 +223,6 @@
                             <div id="response-text" class="input-group hidden">
                                 <input type="text" class="response-text-input" placeholder="text">
                                 <button type="button" onclick="addTextInput(this)">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
                             </div>
                         </div>
                         <button type="button" class="addButtonResponse" onclick="addResponseAgain(this)">Add Responses</button>
@@ -205,25 +230,34 @@
                     </div>
                     <div id="triggerInputs" class="hidden">
                         <h3>Edit Triggers</h3>
-                        <div id="trigger-conditions-container">
-                            <button type="button" onclick="showSpecificFeatureInputs('triggers-condition')">Add Condition</button>
+                        <div id="triggers-container">
+                            <div id="trigger-conditions-container">
+                                <button type="button" onclick="showSpecificFeatureInputs('triggers-condition')">Add Condition</button>
+                            </div>
+                            <div id="triggers-condition" class="input-group hidden">
+                                <input type="text" class="triggers-condition-input" placeholder="input1">
+                                <select type="text" class="triggers-condition-input" placeholder="operator">
+                                    <option value="!=">!=</option>
+                                    <option value=">">&gt;</option>
+                                    <option value="<">&lt;</option>
+                                    <option value=">=">&gt;=</option>
+                                    <option value="<=">&lt;=</option>
+                                    <option value="in">in</option>
+                                    <option value="!in">!in</option>
+                                </select>
+                                <input type="text" class="triggers-condition-input" placeholder="null">
+                                <button type="button" onclick="addConditionInput(this)">+</button>
+                            </div>
+                            <div id="trigger-container">
+                                <button type="button" onclick="showSpecificFeatureInputs('triggers-trigger')">Add Triggers</button>
+                            </div>
+                            <div id="triggers-trigger" class="input-group hidden">
+                                <input type="text" class="trigger-state" placeholder="state">
+                                <input type="number" class="trigger-state-id" placeholder="state id">
+                                <button type="button" onclick="addTriggerInput(this)">+</button>
+                            </div>
                         </div>
-                        <div id="triggers-condition" class="input-group hidden">
-                            <input type="text" class="triggers-condition-input" placeholder="input1">
-                            <input type="text" class="triggers-condition-input" placeholder="operator">
-                            <input type="text" class="triggers-condition-input" placeholder="null">
-                            <button type="button" onclick="addConditionInput(this)">+</button>
-                            <button type="button" onclick="remove(this)">-</button>
-                        </div>
-                        <div id="trigger-container">
-                            <button type="button" onclick="showSpecificFeatureInputs('triggers-trigger')">Add Triggers</button>
-                        </div>
-                        <div id="triggers-trigger" class="input-group hidden">
-                            <input type="text" class="trigger-state" placeholder="state">
-                            <input type="number" class="trigger-state-id" placeholder="state id">
-                            <button type="button" onclick="addTriggerInput(this)">+</button>
-                            <button type="button" onclick="remove(this)">-</button>
-                        </div>
+
                         <button type="button" class="addButtonTriggers" onclick="addTriggersAgain(this)">Add Trigger</button>
                         <button type="button" class="save" id="saveTrigger">Save Triggers</button>
                     </div>
@@ -233,8 +267,7 @@
                             <div class="input-group">
                                 <input type="text" class="multipleChoice-input" placeholder="input1">
                                 <input type="text" class="multipleChoice-input" placeholder="input2">
-                                <button type="button" onclick="addMultipleChoiceInput()">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
+                                <button type="button" onclick="addInput(this)">+</button>
                             </div>
                         </div>
                         <button type="button" class="save" id="saveMultipleChoice">Save MultipleChoice</button>
@@ -245,8 +278,7 @@
                             <div class="input-group">
                                 <input type="text" class="generator-input" placeholder="input1">
                                 <input type="text" class="generator-input" placeholder="input2">
-                                <button type="button" onclick="addGeneratorInput()">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
+                                <button type="button" onclick="addInput(this)">+</button>
                             </div>
                         </div>
                         <button type="button" class="save" id="saveGenerator">Save Generators</button>
@@ -257,8 +289,7 @@
                             <div class="input-group">
                                 <input type="text" class="action-input" placeholder="input1">
                                 <input type="text" class="action-input" placeholder="input2">
-                                <button type="button" onclick="addActionInput()">+</button>
-                                <button type="button" onclick="remove(this)">-</button>
+                                <button type="button" onclick="addInput(this)">+</button>
                             </div>
                         </div>
                         <button type="button" class="save" id="saveAction">Save Actions</button>
