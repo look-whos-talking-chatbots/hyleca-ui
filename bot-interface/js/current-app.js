@@ -53,14 +53,21 @@ document.addEventListener('DOMContentLoaded', (event) => {
     
 });
 
+function generateFlowId() {
+    return Date.now();
+}
 
 function addFlow() {
-    const flowId = document.getElementById('flowId').value;
     const flowTitle = document.getElementById('flowTitle').value;
     const flowDescription = document.getElementById('flowDescription').value;
 
+    if (!flowTitle) {
+        alert('Please fill out all fields (Name)');
+        return;
+    }
+
     const newFlow = {
-        id: parseInt(flowId),
+        id: generateFlowId(),
         title: flowTitle,
         description: flowDescription,
         conditions: saveConditionFlow(),
@@ -79,7 +86,7 @@ function addFlow() {
     `;
     flowContainer.appendChild(flowElement);
     const statesContainer=document.createElement('div');
-    statesContainer.id=`'statesContainer-${flowId}'`;
+    statesContainer.id=`'statesContainer-${newFlow.id}'`;
     statesContainer.className='states-container';
 
     flowContainer.appendChild(statesContainer);
@@ -116,6 +123,9 @@ function addFlow() {
         }
     });
 }
+function generateStateId() {
+    return Date.now();
+}
 
 function addState(button) {
     let stateFlowId, statesContainerId;
@@ -135,7 +145,7 @@ function addState(button) {
     }
 
     const newState = {
-        id: Math.random(),
+        id: generateStateId(),
         title: "",
         type: "",
         conditions: [],
@@ -240,7 +250,7 @@ function editState(stateId) {
         { label: 'Categories', value: targetState.categories },
         { label: 'Entities', value: targetState.entities },
         { label: 'Responses', value: targetState.responses },
-        { label: 'Triggers', value: targetState.triggers },
+        { label: 'Triggers', value: formatTriggers(targetState.triggers)},
         { label: 'Multiple Choices', value: targetState.multipleChoices },
         { label: 'Generators', value: targetState.generators },
         { label: 'Actions', value: targetState.actions }
@@ -253,6 +263,34 @@ function editState(stateId) {
         featureContainer.appendChild(detailElement);
         stateElement.appendChild(featureContainer);
     });
+}
+
+function formatTriggers(triggers) {
+    return triggers.map(trigger => {
+        const [type, id] = trigger.trigger;
+        const title = getTitleFromId(type, id);
+        return {
+            ...trigger,
+            trigger: [type, title]
+        };
+    });
+}
+
+function getTitleFromId(type, id) {
+    if (type === 'state') {
+        for (const flow of botData.dialogue_flows) {
+            const state = flow.states.find(state => state.id === id);
+            if (state) {
+                return state.title;
+            }
+        }
+    } else if (type === 'flow') {
+        const flow = botData.dialogue_flows.find(flow => flow.id === id);
+        if (flow) {
+            return flow.title;
+        }
+    }
+    return id;
 }
 
 function updateState(targetFlow, updatedState) {
@@ -348,6 +386,7 @@ function addConditionInput(button) {
     div.innerHTML = `
         <input type="text" class="${inputClass}" placeholder="input1">
         <select class="${inputClass}">
+            <option disabled selected></option>
             <option value="!=">!=</option>
             <option value=">">&gt;</option>
             <option value="<">&lt;</option>
@@ -407,7 +446,8 @@ function addResponseAgain(button){
     responseCondition.innerHTML = `
         <input type="text" class="response-condition-input" placeholder="input1">
         <select type="text" class="response-condition-input" placeholder="operator">
-            <option value="!=">!=</option>
+                <option disabled selected></option>
+                <option value="!=">!=</option>
                 <option value=">">&gt;</option>
                 <option value="<">&lt;</option>
                 <option value=">=">&gt;=</option>
@@ -466,6 +506,7 @@ function addQuestionAgain(button) {
     questionCondition.innerHTML = `
         <input type="text" class="question-condition-input" placeholder="input1">
         <select class="question-condition-input" placeholder="operator">
+            <option disabled selected></option>
             <option value="!=">!=</option>
             <option value=">">&gt;</option>
             <option value="<">&lt;</option>
@@ -559,6 +600,7 @@ function addTriggersAgain(button) {
     triggersCondition.innerHTML = `
         <input type="text" class="triggers-condition-input" placeholder="input1">
         <select class="triggers-condition-input" placeholder="operator">
+            <option disabled selected></option>
             <option value="!=">!=</option>
             <option value=">">&gt;</option>
             <option value="<">&lt;</option>

@@ -33,14 +33,12 @@
             
             <form id="addFlowForm">
                 <h2>Add New Flow</h2>
-                <label for="flowId">Flow ID:</label>
-                <input type="text" id="flowId" required><br>
 
                 <label for="flowTitle">Name:</label>
-                <input type="text" id="flowTitle" required><br>
+                <input type="text" id="flowTitle"><br>
 
                 <label for="flowDescription">Description:</label>
-                <input type="text" id="flowDescription" required><br>
+                <input type="text" id="flowDescription"><br>
 
                 <div id="conditionInputsFlow" >
                     <h3>Add Conditions</h3>
@@ -48,6 +46,7 @@
                         <div class="input-group">
                             <input type="text" class="flow-condition-input" placeholder="input1">
                             <select type="text" class="flow-condition-input" placeholder="operator">
+                                <option disabled selected></option>
                                 <option value="!=">!=</option>
                                 <option value=">">&gt;</option>
                                 <option value="<">&lt;</option>
@@ -76,11 +75,11 @@
                     <div id="add-state">
                         <h2>Add  State</h2>
                         <div class="input-group">
-                            <label for="state-name">Name</label required>
+                            <label for="state-name">Name</label>
                             <input id="state-name">
                         </div>
                         <div class="input-group">
-                            <label for="state-type">Type</label required>
+                            <label for="state-type">Type</label>
                             <input id="state-type">
                         </div>
                         <div class="featuresContainer">
@@ -128,6 +127,7 @@
                             <div class="input-group">
                                 <input type="text" id="condition-input1" class="condition-input" placeholder="input1">
                                 <select id="condition-operator" class="condition-input">
+                                <option disabled selected></option>
                                     <option value="!=">!=</option>
                                     <option value=">">&gt;</option>
                                     <option value="<">&lt;</option>
@@ -152,6 +152,7 @@
                             <div id="question-condition" class="input-group hidden">
                                 <input type="text" id="question-input1" class="question-condition-input" placeholder="input1">
                                 <select type="text" id="question-operator" class="question-condition-input" placeholder="operator">
+                                    <option disabled selected></option>
                                     <option value="!=">!=</option>
                                     <option value=">">&gt;</option>
                                     <option value="<">&lt;</option>
@@ -206,6 +207,7 @@
                             <div id="response-condition" class="input-group hidden">
                                 <input type="text" class="response-condition-input" placeholder="input1">
                                 <select type="text" class="response-condition-input" placeholder="operator">
+                                    <option disabled selected></option>
                                     <option value="!=">!=</option>
                                     <option value=">">&gt;</option>
                                     <option value="<">&lt;</option>
@@ -237,6 +239,7 @@
                             <div id="triggers-condition" class="input-group hidden">
                                 <input type="text" class="triggers-condition-input" placeholder="input1">
                                 <select type="text" class="triggers-condition-input" placeholder="operator">
+                                    <option disabled selected></option>
                                     <option value="!=">!=</option>
                                     <option value=">">&gt;</option>
                                     <option value="<">&lt;</option>
