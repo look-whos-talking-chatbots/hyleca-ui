@@ -23,6 +23,8 @@ document.getElementById('downloadIcon').addEventListener('click', function() {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
+
+    populateTriggerStateOptions();
 });
 
 
@@ -47,13 +49,66 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const addStateButton = document.getElementById('addStateButton');
     if (addStateButton) {
         addStateButton.addEventListener('click', function() {
-            addState();
+            addState(this);
         });
     } else {
         console.error('addStateButton not found.');
     }
     
 });
+function populateTriggerStateOptions() {
+    let triggerStateSelect = document.querySelector('.trigger-state');
+    
+    // Clear previous options
+    triggerStateSelect.innerHTML = '';
+    
+    // Populate with flow titles and state titles
+    botData.dialogue_flows.forEach(flow => {
+        let option = document.createElement('option');
+        option.value = flow.title;
+        option.textContent = flow.title;
+        triggerStateSelect.appendChild(option);
+        
+        flow.states.forEach(state => {
+            let option = document.createElement('option');
+            option.value = state.title;
+            option.textContent = state.title;
+            triggerStateSelect.appendChild(option);
+        });
+    });
+}
+
+// document.addEventListener("DOMContentLoaded", function() {
+//     let triggerStateInput = document.querySelector(".trigger-state");
+//     let triggerStateIdInput = document.querySelector(".trigger-state-id");
+
+//     // Example event listener for input change
+//     triggerStateInput.addEventListener("input", function() {
+//         let title = triggerStateInput.value;
+//         let stateId = findTriggerIdByTitle(title);
+//         if (stateId) {
+//             triggerStateIdInput.value = stateId;
+//         } else {
+//             triggerStateIdInput.value = "";
+//         }
+//     });
+// });
+// function findTriggerIdByTitle(title) {
+//     for (let flow of botData.dialogue_flows) {
+//         for (let state of flow.states) {
+//             if (state.title === title) {
+//                 return state.id;
+//             }
+//         }
+//     }
+    
+//     for (let flow of botData.dialogue_flows) {
+//         if (flow.title === title) {
+//             return flow.id;
+//         }
+//     }
+//     return null;
+// }
 
 
 function addFlow() {
@@ -100,10 +155,9 @@ function addFlow() {
     document.getElementById('addFlowForm').reset();
     document.getElementById('modalOverlayFlow').style.display = 'none';
 
-    // addStateButton'a event listener ekleme
     addStateButton.addEventListener('click', function() {
         console.log('Add State Button Clicked');
-        addState();        
+        addState(this);        
     });
 
     const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
@@ -120,17 +174,16 @@ function addFlow() {
     });
 }
 
-function addState() {
-    const addStateButton = document.querySelector('#addStateButton');
+function addState(button) {
     let stateFlowId, statesContainerId;
 
-    if (addStateButton && addStateButton.parentElement) {
-        statesContainerId = addStateButton.parentElement.id;
+    if (button && button.parentElement) {
+        statesContainerId = button.parentElement.id;
         const regex = /statesContainer-(\d+)/;
         const match = statesContainerId.match(regex);
         if (match) {
             stateFlowId = match[1];
-            console.log(stateFlowId); 
+            console.log(stateFlowId);
         } else {
             console.error('ID does not match the expected format');
         }
@@ -140,7 +193,7 @@ function addState() {
 
     const newState = {
         id: Math.random(),
-        title:"",
+        title: "",
         type: "",
         conditions: [],
         questions: [],
@@ -153,7 +206,6 @@ function addState() {
         actions: []
     };
 
-    // ilgili flow'a state'i ekliyoruz
     const targetFlow = botData.dialogue_flows.find(flow => flow.id === parseInt(stateFlowId));
     if (targetFlow) {
         targetFlow.states.push(newState);
@@ -162,35 +214,30 @@ function addState() {
         console.error("Target Flow not found for ID:", stateFlowId);
         return;
     }
-    const statesContainer = addStateButton.parentElement;
+
+    const statesContainer = button.parentElement;
     const stateElement = document.createElement('div');
     stateElement.id = `${newState.id}`;
     stateElement.className = 'state';
     stateElement.innerHTML = `<div class="state-header">State Id: ${newState.id}</div>
-                            <div class="state-header">State Type: ${newState.type}</div>`;
+                            <div class="state-header">State Name: ${newState.title}</div>`;
     stateElement.addEventListener('click', () => {
-        editState(newState.id)
+        editState(newState.id);
     });
 
-    statesContainer.appendChild(stateElement);
-
-    if (addStateButton) {
-        statesContainer.insertBefore(stateElement, addStateButton);
-    } else {
-        statesContainer.appendChild(stateElement);
-    }
+    statesContainer.insertBefore(stateElement, button);
 
     console.log(botData);
     alert('New state added!');
 }
 
 function editState(stateId) {
-    var modal = document.getElementById('modalOverlayState');
+    const modal = document.getElementById('modalOverlayState');
     modal.style.display = 'flex';
 
     const saveButtons = document.querySelectorAll('.save');
-    console.log("editstate çalıştı " + stateId);
-    
+    console.log("editState called for stateId: " + stateId);
+
     let targetState = null;
     let targetFlow = null;
 
@@ -207,9 +254,13 @@ function editState(stateId) {
         return;
     }
 
+    setConditionValues(targetState);
+
+    const stateName = document.getElementById('state-name');
+    stateName.value = targetState.title;
 
     saveButtons.forEach(button => {
-        button.onclick = function() {
+        button.onclick = function () {
             resetInput(this);
             if (button.id.includes('saveCondition')) {
                 saveConditions(targetState);
@@ -232,13 +283,13 @@ function editState(stateId) {
             }
         };
     });
-    console.log(targetState);
-    // document.getElementById('state-id').value = state.id;
-    // targetState.type = document.getElementById('stateType').value;
-    const stateElement = document.getElementById('state-info');
-   
-    console.log("aaa" + stateElement.id)
 
+    console.log(targetState);
+
+    const editBtn = document.getElementById('editBtn');
+    editBtn.onclick = () => updateState(targetFlow, targetState);
+
+    const stateElement = document.getElementById('state-info');
     stateElement.innerHTML = '';
     const stateFeatures = [
         { label: 'Conditions', value: targetState.conditions },
@@ -259,23 +310,19 @@ function editState(stateId) {
         featureContainer.appendChild(detailElement);
         stateElement.appendChild(featureContainer);
     });
-    document.getElementById('editBtn').addEventListener('click',function(){
-       updateState(targetFlow,targetState)
-    })
-    
 }
+
 function updateState(targetFlow, updatedState) {
-    console.log(updatedState.id)
+    console.log(updatedState.id);
     const stateName = document.getElementById('state-name');
     updatedState.title = stateName.value;
+
     const stateType = document.getElementById('state-type');
     updatedState.type = stateType.value;
 
-    setConditionValues(updateState);
-
     const stateIndex = targetFlow.states.findIndex(state => state.id === updatedState.id);
     if (stateIndex !== -1) {
-        console.log("stateIndex"+stateIndex);
+        console.log("stateIndex: " + stateIndex);
         targetFlow.states[stateIndex] = updatedState;
         saveBotData();
         alert("State updated");
@@ -286,6 +333,7 @@ function updateState(targetFlow, updatedState) {
     document.getElementById('modalOverlayState').style.display = 'none';
     console.log(updatedState);
 }
+
 
 function saveConditionFlow() {
     const inputs = document.querySelectorAll(".flow-condition-input");
@@ -550,7 +598,6 @@ function saveQuestions(state) {
     return stateQuestions;
 }
 
-
 function addTriggersAgain(button) {
     const triggerInputs = document.getElementById('triggerInputs');
 
@@ -656,10 +703,9 @@ function saveConditions(state) {
         const value = input.value.trim();
         const finalValue = (value === "null") ? null : value;
 
-        // Check if all inputs are filled
         if (value !== '') {
-            const inputType = index % 3; 
-            const groupIndex = Math.floor(index / 3); // Determine group index
+            const inputType = index % 3;
+            const groupIndex = Math.floor(index / 3);
 
             if (!conditions[groupIndex]) {
                 conditions[groupIndex] = [];
@@ -672,6 +718,7 @@ function saveConditions(state) {
     editState(state.id);
     return conditions;
 }
+
 function setConditionValues(state) {
     const inputs = document.querySelectorAll(".condition-input");
     const conditions = state.conditions;
@@ -683,6 +730,8 @@ function setConditionValues(state) {
 
             if (conditions[groupIndex] && conditions[groupIndex][inputType] !== undefined) {
                 input.value = conditions[groupIndex][inputType] === null ? 'null' : conditions[groupIndex][inputType];
+            } else {
+                input.value = '';
             }
         });
     }
@@ -721,6 +770,28 @@ function saveQuestions(state) {
     editState(state.id); // Assuming a function to edit state
     return stateQuestions;
 }
+function setQuestionValues(state) {
+    const questionContainers = document.querySelectorAll('#questions-container');
+    const stateQuestions = state.questions || [];
+
+    questionContainers.forEach((container, index) => {
+        const questionData = stateQuestions[index] || { conditions: [], text: [] };
+
+        const conditionInputs = container.querySelectorAll('.question-condition-input');
+        questionData.conditions.forEach((condition, groupIndex) => {
+            for (let i = 0; i < 3; i++) {
+                conditionInputs[groupIndex * 3 + i].value = condition[i] === null ? 'null' : condition[i];
+            }
+        });
+
+        const textInputs = container.querySelectorAll('.question-text-input');
+        questionData.text.forEach((text, textIndex) => {
+            if (textInputs[textIndex]) {
+                textInputs[textIndex].value = text;
+            }
+        });
+    });
+}
 
 function saveCategories(state) {
     const inputs = document.querySelectorAll(".category-input");
@@ -736,6 +807,19 @@ function saveCategories(state) {
     state.categories = categories;
     editState(state.id);
     return categories;
+}
+function setCategoryValues(state) {
+    const inputs = document.querySelectorAll(".category-input");
+    const categories = state.categories || [];
+
+    inputs.forEach((input, index) => {
+        const groupIndex = Math.floor(index / 2);
+        if (categories[groupIndex] && categories[groupIndex][index % 2] !== undefined) {
+            input.value = categories[groupIndex][index % 2];
+        } else {
+            input.value = '';
+        }
+    });
 }
 
 function saveEntities(state) {
@@ -753,6 +837,19 @@ function saveEntities(state) {
     console.log(state);
     editState(state.id);
     return entities;
+}
+function setEntityValues(state) {
+    const inputs = document.querySelectorAll(".entity-input");
+    const entities = state.entities || [];
+
+    inputs.forEach((input, index) => {
+        const groupIndex = Math.floor(index / 2);
+        if (entities[groupIndex] && entities[groupIndex][index % 2] !== undefined) {
+            input.value = entities[groupIndex][index % 2];
+        } else {
+            input.value = '';
+        }
+    });
 }
 
 function saveResponses(state) {
@@ -795,6 +892,29 @@ function saveResponses(state) {
     editState(state.id);
     return stateResponses;
 }
+function setResponseValues(state) {
+    const conditionGroups = document.querySelectorAll('#response-condition');
+    const textGroups = document.querySelectorAll('#response-text');
+    const stateResponses = state.responses || [];
+
+    conditionGroups.forEach((conditionGroup, index) => {
+        const responseData = stateResponses[index] || { conditions: [], text: [] };
+
+        const conditionInputs = conditionGroup.querySelectorAll('.response-condition-input');
+        responseData.conditions.forEach((condition, groupIndex) => {
+            for (let i = 0; i < 3; i++) {
+                conditionInputs[groupIndex * 3 + i].value = condition[i] === null ? 'null' : condition[i];
+            }
+        });
+
+        const textInputs = textGroups[index].querySelectorAll('.response-text-input');
+        responseData.text.forEach((text, textIndex) => {
+            if (textInputs[textIndex]) {
+                textInputs[textIndex].value = text;
+            }
+        });
+    });
+}
 
 function saveTriggers(state) {
     const conditionGroups = document.querySelectorAll('#triggers-condition');
@@ -817,13 +937,13 @@ function saveTriggers(state) {
         }
 
         // Collect trigger state
-        const state = triggerStateInputs[index].value.trim();
+        const selectedStateOrFlow = triggerStateInputs[index].value.trim();
         const stateId = parseInt(triggerStateIdInputs[index].value.trim());
 
-        if (state !== '' && !isNaN(stateId)) {
+        if (selectedStateOrFlow !== '' && !isNaN(stateId)) {
             triggers.push({
                 conditions: conditions.filter(Boolean), // Remove empty conditions
-                trigger: [state, stateId]
+                trigger: [selectedStateOrFlow, stateId]
             });
         }
     });
@@ -832,6 +952,31 @@ function saveTriggers(state) {
     state.triggers = triggers;
     editState(state.id); // Assuming a function to edit state
     return triggers;
+}
+
+function setTriggerValues(state) {
+    const conditionGroups = document.querySelectorAll('#triggers-condition');
+    const triggerStateInputs = document.querySelectorAll('.trigger-state');
+    const triggerStateIdInputs = document.querySelectorAll('.trigger-state-id');
+    const triggers = state.triggers || [];
+
+    conditionGroups.forEach((conditionGroup, index) => {
+        const triggerData = triggers[index] || { conditions: [], trigger: [] };
+
+        const conditionInputs = conditionGroup.querySelectorAll('.triggers-condition-input');
+        triggerData.conditions.forEach((condition, groupIndex) => {
+            for (let i = 0; i < 3; i++) {
+                conditionInputs[groupIndex * 3 + i].value = condition[i] === null ? 'null' : condition[i];
+            }
+        });
+
+        if (triggerStateInputs[index]) {
+            triggerStateInputs[index].value = triggerData.trigger[0] || '';
+        }
+        if (triggerStateIdInputs[index]) {
+            triggerStateIdInputs[index].value = triggerData.trigger[1] || '';
+        }
+    });
 }
 
 function saveMultipleChoice(state) {
@@ -850,6 +995,20 @@ function saveMultipleChoice(state) {
 return multipleChoices;
 }
 
+function setMultipleChoiceValues(state) {
+    const inputs = document.querySelectorAll(".multipleChoice-input");
+    const multipleChoices = state.multipleChoices || [];
+
+    inputs.forEach((input, index) => {
+        const groupIndex = Math.floor(index / 2);
+        if (multipleChoices[groupIndex] && multipleChoices[groupIndex][index % 2] !== undefined) {
+            input.value = multipleChoices[groupIndex][index % 2];
+        } else {
+            input.value = '';
+        }
+    });
+}
+
 function saveGenerators(state) {
     const inputs = document.querySelectorAll(".generator-input");
     const generators = [];
@@ -864,6 +1023,19 @@ function saveGenerators(state) {
     state.generators=generators;
     editState(state.id);
 return generators;
+}
+function setGeneratorValues(state) {
+    const inputs = document.querySelectorAll(".generator-input");
+    const generators = state.generators || [];
+
+    inputs.forEach((input, index) => {
+        const groupIndex = Math.floor(index / 2);
+        if (generators[groupIndex] && generators[groupIndex][index % 2] !== undefined) {
+            input.value = generators[groupIndex][index % 2];
+        } else {
+            input.value = '';
+        }
+    });
 }
 
 function saveActions(state) {
@@ -881,6 +1053,19 @@ function saveActions(state) {
     editState(state.id);
 return actions;
 
+}
+function setActionValues(state) {
+    const inputs = document.querySelectorAll(".action-input");
+    const actions = state.actions || [];
+
+    inputs.forEach((input, index) => {
+        const groupIndex = Math.floor(index / 2);
+        if (actions[groupIndex] && actions[groupIndex][index % 2] !== undefined) {
+            input.value = actions[groupIndex][index % 2];
+        } else {
+            input.value = '';
+        }
+    });
 }
 
 function saveBotData() {
