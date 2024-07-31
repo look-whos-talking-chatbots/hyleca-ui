@@ -185,6 +185,13 @@ button:hover{
 .state {
     background-color: rgb(216, 216, 235);
 }
+.stateFooter {
+    display: flex;
+    align-items: center;
+    gap: 10px; 
+}
+
+
 .hidden {
     display: none;
 }

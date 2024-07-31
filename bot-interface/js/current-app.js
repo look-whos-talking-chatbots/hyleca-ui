@@ -21,36 +21,49 @@ document.getElementById('downloadIcon').addEventListener('click', function() {
     document.body.appendChild(downloadLink);
     downloadLink.click();
     document.body.removeChild(downloadLink);
-
 });
 
+document.getElementById('uploadButton').addEventListener('click', function() {
+    document.getElementById('uploadJson').click();
+});
+
+document.getElementById('uploadJson').addEventListener('change', function(event) {
+    const file = event.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            try {
+                const jsonContent = JSON.parse(e.target.result);
+                updateBotData(jsonContent);
+                alert('JSON data has been successfully uploaded and used.');
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+                alert('Failed to parse JSON file. Please check the file format.');
+            }
+        };
+        reader.readAsText(file);
+    }
+});
+
+function updateBotData(jsonData) {
+    botData = jsonData;
+    saveBotData();
+    initializeAppWithBotData();
+}
 
 document.addEventListener('DOMContentLoaded', (event) => {
-
     const savedBotData = localStorage.getItem('botData');
     if (savedBotData) {
         botData = JSON.parse(savedBotData);
-        // loadFlows();
+        loadData();
     }
+
     document.getElementById('botName').textContent = botData.name + "-Bot";
     document.getElementById('botDescription').textContent = botData.description;
 
-    // Add event listeners
     document.getElementById('addFlowButton').addEventListener('click', function() {
-        console.log('Add Flow Button Clicked');
-        var modal = document.getElementById('modalOverlayFlow');
-        modal.style.display = 'flex';
+        addFlow()
     });
-
-    const addStateButton = document.getElementById('addStateButton');
-    if (addStateButton) {
-        addStateButton.addEventListener('click', function() {
-            addState(this);
-        });
-    } else {
-        console.error('addStateButton not found.');
-    }
-    
 });
 
 function generateFlowId() {
@@ -58,19 +71,11 @@ function generateFlowId() {
 }
 
 function addFlow() {
-    const flowTitle = document.getElementById('flowTitle').value;
-    const flowDescription = document.getElementById('flowDescription').value;
-
-    if (!flowTitle) {
-        alert('Please fill out all fields (Name)');
-        return;
-    }
-
     const newFlow = {
         id: generateFlowId(),
-        title: flowTitle,
-        description: flowDescription,
-        conditions: saveConditionFlow(),
+        title: "",
+        description: "",
+        conditions: [],
         states: []
     };
 
@@ -81,14 +86,16 @@ function addFlow() {
     const flowElement = document.createElement('div');
     flowElement.className = 'flow';
     flowElement.innerHTML = `
-        <div class="flow-header">Flow Name: ${flowTitle}</div>
+        <div class="flow-header">Flow Name: ${newFlow.title}</div>
+        <button class="delete-flow-button"></button>
         <button class="toggle-states-button"></button>
     `;
+    
     flowContainer.appendChild(flowElement);
-    const statesContainer=document.createElement('div');
-    statesContainer.id=`'statesContainer-${newFlow.id}'`;
-    statesContainer.className='states-container';
 
+    const statesContainer = document.createElement('div');
+    statesContainer.id = `statesContainer-${newFlow.id}`;
+    statesContainer.className = 'states-container';
     flowContainer.appendChild(statesContainer);
 
     const addStateButton = document.createElement('button');
@@ -96,18 +103,23 @@ function addFlow() {
     addStateButton.textContent = "Add State";
     statesContainer.appendChild(addStateButton);
 
-    const hrElement = document.createElement('hr');
-    flowContainer.appendChild(hrElement);
-
-    console.log(botData);
-    alert('New flow added!');
-
-    document.getElementById('addFlowForm').reset();
-    document.getElementById('modalOverlayFlow').style.display = 'none';
-
     addStateButton.addEventListener('click', function() {
         console.log('Add State Button Clicked');
         addState(this);        
+    });
+
+    const hrElement = document.createElement('hr');
+    flowContainer.appendChild(hrElement);
+
+    const flowHeader = flowElement.querySelector('.flow-header');
+    flowHeader.addEventListener('click', () => {
+        editFlow(newFlow.id);
+    });
+
+    flowElement.querySelector('.delete-flow-button').addEventListener('click', () => {
+        deleteFlow(newFlow.id);
+        statesContainer.remove();
+        flowElement.remove();
     });
 
     const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
@@ -122,7 +134,92 @@ function addFlow() {
             toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
         }
     });
+
+    console.log(botData);
+    alert('New flow added!');
 }
+
+function editFlow(flowId) {
+    console.log('Edit Flow Button Clicked');
+    var modal = document.getElementById('modalOverlayFlow');
+    modal.style.display = 'flex';
+
+    const flowTitleInput = document.getElementById('flowTitle');
+    const flowDescriptionInput = document.getElementById('flowDescription');
+
+    let targetFlow = botData.dialogue_flows.find(flow => flow.id === flowId);
+    if (!targetFlow) {
+        console.error(`Flow with id ${flowId} not found.`);
+        return;
+    }
+
+    flowTitleInput.value = targetFlow.title;
+    flowDescriptionInput.value = targetFlow.description;
+    setConditionFlowValues(targetFlow);
+
+    const editFlowBtn = document.getElementById('editFlowBtn');
+    editFlowBtn.onclick = () => updateFlow(targetFlow);
+
+    const toggleStatesButton = document.querySelector(`.toggle-states-button`);
+    toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")'; 
+
+    toggleStatesButton.addEventListener('click', function () {
+        const statesContainer = document.getElementById(`statesContainer-${flowId}`);
+        if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
+            statesContainer.style.display = 'none';
+            toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
+        } else {
+            statesContainer.style.display = 'flex';
+            toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
+        }
+    });
+}
+
+function updateFlow(updatedFlow) {
+    const flowTitleInput = document.getElementById('flowTitle').value;
+    const flowDescriptionInput = document.getElementById('flowDescription').value;
+    if (!flowTitleInput) {
+        alert('Please fill out flow name!');
+        return;
+    }
+    updatedFlow.title = flowTitleInput;
+    updatedFlow.description = flowDescriptionInput;
+    updatedFlow.conditions = saveConditionFlow();
+
+    const flowIndex = botData.dialogue_flows.findIndex(flow => flow.id === updatedFlow.id);
+    if (flowIndex !== -1) {
+        botData.dialogue_flows[flowIndex] = updatedFlow;
+        saveBotData();
+        alert("Flow Updated");
+
+         // Update flow header title in the DOM
+         const flowHeader = document.querySelector(`.flow-header[data-flow-id='${updatedFlow.id}']`);
+         if (flowHeader) {
+             flowHeader.textContent = `Flow Name: ${updatedFlow.title}`;
+         } else {
+             console.error(`Flow header element not found for flow id ${updatedFlow.id}`);
+         }
+         window.location.reload();
+
+
+    } else {
+        console.error(`Flow with id ${updatedFlow.id} not found.`);
+    }
+    
+    document.getElementById('addFlowForm').reset();
+    document.getElementById('modalOverlayFlow').style.display = 'none';
+}
+function deleteFlow(flowId) {
+    const flowIndex = botData.dialogue_flows.findIndex(flow => flow.id === flowId);
+    if (flowIndex !== -1) {
+        botData.dialogue_flows.splice(flowIndex, 1);
+        saveBotData();
+        console.log(`Flow with ID ${flowId} deleted`);
+    } else {
+        console.error(`Flow with ID ${flowId} not found`);
+    }
+}
+
 function generateStateId() {
     return Date.now();
 }
@@ -140,8 +237,6 @@ function addState(button) {
         } else {
             console.error('ID does not match the expected format');
         }
-    } else {
-        console.error('addStateButton element not found or has no parent element');
     }
 
     const newState = {
@@ -172,16 +267,94 @@ function addState(button) {
     const stateElement = document.createElement('div');
     stateElement.id = `${newState.id}`;
     stateElement.className = 'state';
-    stateElement.innerHTML = `<div class="state-header">State Id: ${newState.id}</div>
-                            <div class="state-header">State Name: ${newState.title}</div>`;
-    stateElement.addEventListener('click', () => {
-        editState(newState.id);
-    });
+    let stateContent = `
+                <div class="state-header">
+                    Name: ${newState.title || 'N/A'}
+                    <div>${newState.type || 'N/A'} state</div>
+                </div>
+                <hr>
+            `;
+        
+            if (newState.type === 'monologue') {
+                const formattedResponses = newState.responses.map(response => 
+                    `<div class="response-item">
+                        <strong>Conditions:</strong> ${response.conditions.length ? response.conditions.join(', ') : 'None'}<br>
+                        <strong>Text:</strong> ${response.text}
+                    </div>`
+                ).join('');
+                stateContent += `<div class="state-responses">Responses: ${formattedResponses}</div>`;
+            } else if (newState.type === 'dialogue') {
+                const formattedQuestions = newState.questions.map(question => 
+                    `<div class="question-item">
+                        <strong>Conditions:</strong> ${question.conditions.length ? question.conditions.join(', ') : 'None'}<br>
+                        <strong>Text:</strong> ${question.text}
+                    </div>`
+                ).join('');
+                stateContent += `<div class="state-questions">Questions: ${formattedQuestions}</div>`;
+            }
+        
+            const stateContentDiv = document.createElement('div');
+            stateContentDiv.className = 'state-content';
+            stateContentDiv.innerHTML = stateContent;
+        
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-state-button';
+        
+            // Create the warning message if any of the specified conditions are met
+            let warningMessage = '';
+            if (!newState.title || !newState.type) {
+                warningMessage += '<div class="warning">State is missing a name or type.</div>';
+            }
+            if (newState.type === 'monologue' && (!newState.responses || newState.responses.length === 0)) {
+                warningMessage += '<div class="warning">Monologue state has no responses.</div>';
+            }
+            if (newState.type === 'dialogue' && (!newState.questions || newState.questions.length === 0)) {
+                warningMessage += '<div class="warning">Dialogue state has no questions.</div>';
+            }
 
-    statesContainer.insertBefore(stateElement, button);
+            // Create the warning message div
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'warning';
+            warningDiv.innerHTML = warningMessage;
+            
+            const stateFooter = document.createElement('div');
+            stateFooter.className='stateFooter';
+
+            stateFooter.appendChild(deleteButton);
+            stateFooter.appendChild(warningDiv);
+        
+            // Append elements to stateElement
+            stateElement.appendChild(stateContentDiv);
+            stateElement.appendChild(stateFooter);
+        
+            stateContentDiv.addEventListener('click', () => {
+                editState(newState.id);
+            });
+        
+            deleteButton.addEventListener('click', (event) => {
+                event.stopPropagation(); 
+                deleteState(targetFlow.id, newState.id);
+                stateElement.remove();
+            });
+            statesContainer.insertBefore(stateElement, button);
 
     console.log(botData);
     alert('New state added!');
+}
+function deleteState(flowId, stateId) {
+    const flow = botData.dialogue_flows.find(flow => flow.id === flowId);
+    if (flow) {
+        const stateIndex = flow.states.findIndex(state => state.id === stateId);
+        if (stateIndex !== -1) {
+            flow.states.splice(stateIndex, 1);
+            saveBotData();
+            console.log(`State with ID ${stateId} deleted from Flow ID ${flowId}`);
+        } else {
+            console.error(`State with ID ${stateId} not found in Flow ID ${flowId}`);
+        }
+    } else {
+        console.error(`Flow with ID ${flowId} not found`);
+    }
 }
 
 function editState(stateId) {
@@ -206,11 +379,22 @@ function editState(stateId) {
         console.error(`State with id ${stateId} not found.`);
         return;
     }
-
+    
     setConditionValues(targetState);
+    setQuestionValues(targetState);
+    setCategoryValues(targetState);
+    setEntityValues(targetState);
+    setResponseValues(targetState);
+    setTriggerValues(targetState);
+    setMultipleChoiceValues(targetState);
+    setGeneratorValues(targetState);
+    setActionValues(targetState);
 
     const stateName = document.getElementById('state-name');
     stateName.value = targetState.title;
+
+    const stateType = document.getElementById('state-type');
+    stateType.value = targetState.type
 
     saveButtons.forEach(button => {
         button.onclick = function () {
@@ -258,12 +442,29 @@ function editState(stateId) {
 
     stateFeatures.forEach(feature => {
         const featureContainer = document.createElement('div');
+        featureContainer.classList.add('state-feature');
         const detailElement = document.createElement('p');
-        detailElement.innerHTML = `<strong>${feature.label}:</strong> ${JSON.stringify(feature.value)}`;
+        detailElement.innerHTML = `<strong>${feature.label}:</strong><br> ${formatFeatureValue(feature.value)}`;
         featureContainer.appendChild(detailElement);
         stateElement.appendChild(featureContainer);
     });
 }
+function formatFeatureValue(value) {
+    if (!value) {
+        return 'None'; 
+    }
+
+    if (Array.isArray(value) && value.length > 0) {
+        return value.map(item => {
+            if (typeof item === 'object' && item !== null) {
+                return `<div class="feature-item">${Object.entries(item).map(([key, val]) => `<strong>${key}:</strong> ${val}`).join('<br>')}</div>`;
+            }
+            return item;
+        }).join('<br>');
+    }
+    return value.length === 0 ? 'None' : value;
+}
+
 
 function formatTriggers(triggers) {
     return triggers.map(trigger => {
@@ -295,11 +496,20 @@ function getTitleFromId(type, id) {
 
 function updateState(targetFlow, updatedState) {
     console.log(updatedState.id);
-    const stateName = document.getElementById('state-name');
-    updatedState.title = stateName.value;
+    const stateName = document.getElementById('state-name').value;
+    if (!stateName) {
+        alert('Please fill out all state name');
+        return;
+    }
+    updatedState.title = stateName;
 
-    const stateType = document.getElementById('state-type');
-    updatedState.type = stateType.value;
+    const stateType = document.getElementById('state-type').value;
+    if (!stateType) {
+        alert('Please choose state type');
+        return;
+    }
+    updatedState.type = stateType;
+    
 
     const stateIndex = targetFlow.states.findIndex(state => state.id === updatedState.id);
     if (stateIndex !== -1) {
@@ -307,6 +517,9 @@ function updateState(targetFlow, updatedState) {
         targetFlow.states[stateIndex] = updatedState;
         saveBotData();
         alert("State updated");
+        
+        window.location.reload();
+       
     } else {
         console.error(`State with id ${updatedState.id} not found in targetFlow.`);
     }
@@ -385,6 +598,7 @@ function addConditionInput(button) {
     div.className = "input-group";
     div.innerHTML = `
         <input type="text" class="${inputClass}" placeholder="input1">
+        <input type="text" class="${inputClass}" placeholder="null">
         <select class="${inputClass}">
             <option disabled selected></option>
             <option value="!=">!=</option>
@@ -395,7 +609,6 @@ function addConditionInput(button) {
             <option value="in">in</option>
             <option value="!in">!in</option>
         </select>
-        <input type="text" class="${inputClass}" placeholder="null">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -445,6 +658,7 @@ function addResponseAgain(button){
     responseCondition.className = 'input-group hidden';
     responseCondition.innerHTML = `
         <input type="text" class="response-condition-input" placeholder="input1">
+        <input type="text" class="response-condition-input" placeholder="null">
         <select type="text" class="response-condition-input" placeholder="operator">
                 <option disabled selected></option>
                 <option value="!=">!=</option>
@@ -455,7 +669,6 @@ function addResponseAgain(button){
                 <option value="in">in</option>
                 <option value="!in">!in</option>
             </select>
-        <input type="text" class="response-condition-input" placeholder="null">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -505,6 +718,7 @@ function addQuestionAgain(button) {
     questionCondition.className = 'input-group hidden';
     questionCondition.innerHTML = `
         <input type="text" class="question-condition-input" placeholder="input1">
+        <input type="text" class="question-condition-input" placeholder="null">
         <select class="question-condition-input" placeholder="operator">
             <option disabled selected></option>
             <option value="!=">!=</option>
@@ -515,7 +729,6 @@ function addQuestionAgain(button) {
             <option value="in">in</option>
             <option value="!in">!in</option>
         </select>
-        <input type="text" class="question-condition-input" placeholder="null">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -599,6 +812,7 @@ function addTriggersAgain(button) {
     triggersCondition.className = 'input-group hidden';
     triggersCondition.innerHTML = `
         <input type="text" class="triggers-condition-input" placeholder="input1">
+        <input type="text" class="triggers-condition-input" placeholder="value">
         <select class="triggers-condition-input" placeholder="operator">
             <option disabled selected></option>
             <option value="!=">!=</option>
@@ -609,7 +823,6 @@ function addTriggersAgain(button) {
             <option value="in">in</option>
             <option value="!in">!in</option>
         </select>
-        <input type="text" class="triggers-condition-input" placeholder="value">
         <button type="button" onclick="addConditionInput(this)">+</button>
         <button type="button" onclick="remove(this)">-</button>
     `;
@@ -681,6 +894,23 @@ function saveConditionFlow() {
     });
     
     return conditions;
+}
+function setConditionFlowValues(state) {
+    const inputs = document.querySelectorAll(".flow-condition-input");
+    const conditions = state.conditions;
+
+    if (conditions && conditions.length) {
+        inputs.forEach((input, index) => {
+            const groupIndex = Math.floor(index / 3);
+            const inputType = index % 3;
+
+            if (conditions[groupIndex] && conditions[groupIndex][inputType] !== undefined) {
+                input.value = conditions[groupIndex][inputType] === null ? 'null' : conditions[groupIndex][inputType];
+            } else {
+                input.value = '';
+            }
+        });
+    }
 }
 
 function saveConditions(state) {
@@ -941,7 +1171,7 @@ function saveTriggers(state) {
 
         if (selectedStateOrFlow !== '' && stateId !== null) {
             triggers.push({
-                conditions: conditions.filter(Boolean), // Remove empty conditions
+                conditions: conditions.filter(Boolean), 
                 trigger: [selectedStateOrFlow, stateId]
             });
         }
@@ -1074,6 +1304,192 @@ function setActionValues(state) {
 function saveBotData() {
     localStorage.setItem('botData', JSON.stringify(botData));
 }
+function loadData() {
+    const data = localStorage.getItem('botData');
+    if (data) {
+        botData = JSON.parse(data);
+        initializeAppWithBotData();
+    }
+}
+
+
+function initializeAppWithBotData() {
+    const flowContainer = document.getElementById('flowsContainer');
+    flowContainer.innerHTML = '';
+
+    botData.dialogue_flows.forEach(flow => {
+        const flowElement = document.createElement('div');
+        flowElement.className = 'flow';
+        flowElement.innerHTML = `
+            <div class="flow-header">Flow Name: ${flow.title}</div>
+            <button class="delete-flow-button"></button>
+            <button class="toggle-states-button"></button>
+        `;
+        
+        flowContainer.appendChild(flowElement);
+
+        const statesContainer = document.createElement('div');
+        statesContainer.id = `statesContainer-${flow.id}`;
+        statesContainer.className = 'states-container';
+        flowContainer.appendChild(statesContainer);
+
+        flowElement.querySelector('.delete-flow-button').addEventListener('click', () => {
+            deleteFlow(flow.id);
+            flowElement.remove();
+            statesContainer.remove();
+        });
+
+        const addStateButton = document.createElement('button');
+        addStateButton.id = "addStateButton";
+        addStateButton.textContent = "Add State";
+        statesContainer.appendChild(addStateButton);
+
+        const hrElement = document.createElement('hr');
+        flowContainer.appendChild(hrElement);
+
+        const flowHeader = flowElement.querySelector('.flow-header');
+        flowHeader.addEventListener('click', () => {
+            editFlow(flow.id);
+        });
+
+        addStateButton.addEventListener('click', function() {
+            addState(this);
+        });
+        flow.states.forEach(state => {
+            const stateElement = document.createElement('div');
+            stateElement.id = `${state.id}`;
+            stateElement.className = 'state';   
+        
+            // Initialize state header
+            let stateContent = `
+                <div class="state-header">
+                    Name: ${state.title || 'N/A'}
+                    <div>${state.type || 'N/A'} state</div>
+                </div>
+                <hr>
+            `;
+        
+            // Create state content div
+            const stateContentDiv = document.createElement('div');
+            stateContentDiv.className = 'state-content';
+            
+            // Create delete button
+            const deleteButton = document.createElement('button');
+            deleteButton.className = 'delete-state-button';
+        
+            // Create the warning message div
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'warning';
+        
+            // Function to update content based on state type
+            const updateStateContent = (state) => {
+                let content = `
+                    <div class="state-header">
+                        Name: ${state.title || 'N/A'}
+                        <div>${state.type || 'N/A'} state</div>
+                    </div>
+                    <hr>
+                `;
+                if (state.type === 'monologue') {
+                    const formattedResponses = state.responses.map(response => 
+                        `<div class="response-item">
+                            <strong>Conditions:</strong> ${response.conditions.length ? response.conditions.join(', ') : 'None'}<br>
+                            <strong>Text:</strong> ${response.text}
+                        </div>`
+                    ).join('');
+                    content += `<div class="state-responses">Responses: ${formattedResponses}</div>`;
+                } else if (state.type === 'dialogue') {
+                    const formattedQuestions = state.questions.map(question => 
+                        `<div class="question-item">
+                            <strong>Conditions:</strong> ${question.conditions.length ? question.conditions.join(', ') : 'None'}<br>
+                            <strong>Text:</strong> ${question.text}
+                        </div>`
+                    ).join('');
+                    content += `<div class="state-questions">Questions: ${formattedQuestions}</div>`;
+                }
+                stateContentDiv.innerHTML = content;
+        
+                // Update the warning message
+                let warningMessage = '';
+                if (!state.title || state.title === 'undefined' || !state.type) {
+                    warningMessage += '<div class="warning">State is missing a name or type.</div>';
+                }
+                if (state.type === 'monologue' && (!state.responses || state.responses.length === 0)) {
+                    warningMessage += '<div class="warning">Monologue state has no responses.</div>';
+                }
+                if (state.type === 'dialogue' && (!state.questions || state.questions.length === 0)) {
+                    warningMessage += '<div class="warning">Dialogue state has no questions.</div>';
+                }
+                warningDiv.innerHTML = warningMessage;
+            };
+        
+            // Initial update of state content
+            updateStateContent(state);
+
+            const stateFooter = document.createElement('div');
+            stateFooter.className='stateFooter';
+
+            stateFooter.appendChild(deleteButton);
+            stateFooter.appendChild(warningDiv);
+        
+            // Append elements to stateElement
+            stateElement.appendChild(stateContentDiv);
+            stateElement.appendChild(stateFooter);
+
+            // stateElement.appendChild(deleteButton);
+            // stateElement.appendChild(warningDiv);
+        
+            // Add event listeners
+            stateContentDiv.addEventListener('click', () => {
+                editState(state.id);
+                // Update state content and warning message after editing
+                updateStateContent(state);
+            });
+        
+            deleteButton.addEventListener('click', (event) => {
+                event.stopPropagation(); 
+                deleteState(flow.id, state.id);
+                stateElement.remove();
+            });
+        
+            // Append the state element to the container
+            const addStateButton = statesContainer.querySelector("#addStateButton");
+            if (addStateButton) {
+                statesContainer.insertBefore(stateElement, addStateButton);
+            } else {
+                statesContainer.appendChild(stateElement);
+            }
+        });
+        
+        
+        
+
+        const toggleStatesButton = flowElement.querySelector('.toggle-states-button');
+        toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
+
+        toggleStatesButton.addEventListener('click', function () {
+            if (statesContainer.style.display === 'flex' || statesContainer.style.display === '') {
+                statesContainer.style.display = 'none';
+                toggleStatesButton.style.backgroundImage = 'url("../images/hidden.png")';
+            } else {
+                statesContainer.style.display = 'flex';
+                toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
+            }
+        });
+
+        // Add flow header click event to edit flow
+        flowHeader.addEventListener('click', () => {
+            editFlow(flow.id);
+        });
+        
+        // Add state button click event to add state
+        addStateButton.addEventListener('click', function() {
+            addState(flow.id);
+        });
+    });
+}
+
+
 
 
 
