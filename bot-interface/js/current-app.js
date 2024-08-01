@@ -9,19 +9,206 @@ let botData = {
         static_slots: {},
         retrieval_slots: {}
     },
-    dialogue_flows: []
+    dialogue_flows: [
+        {
+            id: 9999,
+            title: "termination",
+            description: "Messages to be sent when all the pre-scripted flows are executed or the conversation needs to be terminated",
+            conditions: [],
+            states: [
+                {
+                    id: 9901,
+                    conditions: [],
+                    questions: [],
+                    intents: [],
+                    entities: [],
+                    responses: [
+                        {
+                            conditions: [],
+                            text: [
+                                "Alright, this was all the dialogue that I was designed to have!",
+                                "It was fun to talk to you!"
+                            ]
+                        }
+                    ],
+                    triggers: [
+                        {
+                            conditions: [],
+                            trigger: [
+                                "flow",
+                                10000
+                            ]
+                        }
+                    ],
+                    type: "monologue",
+                    multipleChoice: [],
+                    generators: [],
+                    actions: []
+                }
+            ]
+        },
+        {
+            id: 10000,
+            title: "onhold",
+            description: "On hold messages, in case the user wants to write the bot off-times.",
+            conditions: [],
+            states: [
+                {
+                    id: 10001,
+                    conditions: [],
+                    questions: [],
+                    intents: [],
+                    entities: [],
+                    responses: [
+                        {
+                            conditions: [
+                                [
+                                    "progress.onhold.is",
+                                    true,
+                                    "=="
+                                ]
+                            ],
+                            text: [
+                                "Hi {{ name }}, thanks for reaching out, our next session is scheduled for later."
+                            ]
+                        },
+                        {
+                            conditions: [
+                                [
+                                    "progress.onhold.is",
+                                    false,
+                                    "=="
+                                ],
+                                [
+                                    "progress.flow.past",
+                                    9999,
+                                    "in"
+                                ]
+                            ],
+                            text: [
+                                "This was all I could say! Perhaps you can add more options to my dialogue."
+                            ]
+                        },
+                        {
+                            conditions: [
+                                [
+                                    "progress.onhold.is",
+                                    false,
+                                    "=="
+                                ],
+                                [
+                                    "progress.flow.past",
+                                    9999,
+                                    "!in"
+                                ]
+                            ],
+                            text: [
+                                ""
+                            ]
+                        }
+                    ],
+                    triggers: [
+                        {
+                            conditions: [
+                                [
+                                    "progress.onhold.is",
+                                    true,
+                                    "=="
+                                ]
+                            ],
+                            trigger: [
+                                "flow",
+                                10000
+                            ]
+                        },
+                        {
+                            conditions: [
+                                [
+                                    "progress.onhold.is",
+                                    false,
+                                    "=="
+                                ],
+                                [
+                                    "progress.flow.past",
+                                    9999,
+                                    "in"
+                                ]
+                            ],
+                            trigger: [
+                                "flow",
+                                10000
+                            ]
+                        },
+                        {
+                            conditions: [
+                                [
+                                    "progress.onhold.is",
+                                    false,
+                                    "=="
+                                ],
+                                [
+                                    "progress.flow.past",
+                                    1111,
+                                    "in"
+                                ]
+                            ],
+                            trigger: [
+                                "flow",
+                                2222
+                            ]
+                        }
+                    ],
+                    type: "on-hold",
+                    multipleChoice: [],
+                    generators: [],
+                    actions: [
+                        [
+                            "get_on_hold",
+                            "progress.onhold.is",
+                            "repeat"
+                        ]
+                    ]
+                }
+            ]
+        }
+    ]
 };
 
 document.getElementById('downloadIcon').addEventListener('click', function() {
-    const jsonContent = JSON.stringify(botData, null, 2);
-    const blob = new Blob([jsonContent], { type: 'application/json' });
-    const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(blob);
-    downloadLink.download = 'botData.json';
-    document.body.appendChild(downloadLink);
-    downloadLink.click();
-    document.body.removeChild(downloadLink);
+    let hasWarnings = false;
+    let warningMessage = '';
+
+    botData.dialogue_flows.forEach(flow => {
+        flow.states.forEach(state => {
+            if (!state.title || state.title === 'undefined' || !state.type) {
+                warningMessage += `State in flow "${flow.title}" is missing a name or type.\n`;
+                hasWarnings = true;
+            }
+            if (state.type === 'monologue' && (!state.responses || state.responses.length === 0)) {
+                warningMessage += `Monologue state in flow "${flow.title}" has no responses.\n`;
+                hasWarnings = true;
+            }
+            if (state.type === 'dialogue' && (!state.questions || state.questions.length === 0)) {
+                warningMessage += `Dialogue state in flow "${flow.title}" has no questions.\n`;
+                hasWarnings = true;
+            }
+        });
+    });
+
+    if (hasWarnings) {
+        alert(`Cannot download botData.json due to the following issues:\n${warningMessage}`);
+    } else {
+        const jsonContent = JSON.stringify(botData, null, 2);
+        const blob = new Blob([jsonContent], { type: 'application/json' });
+        const downloadLink = document.createElement('a');
+        downloadLink.href = URL.createObjectURL(blob);
+        downloadLink.download = 'botData.json';
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        document.body.removeChild(downloadLink);
+    }
 });
+
 
 document.getElementById('uploadButton').addEventListener('click', function() {
     document.getElementById('uploadJson').click();
@@ -79,14 +266,14 @@ function addFlow() {
         states: []
     };
 
-    botData.dialogue_flows.push(newFlow);
+    botData.dialogue_flows.unshift(newFlow);
     saveBotData();
 
     const flowContainer = document.getElementById('flowsContainer');
     const flowElement = document.createElement('div');
     flowElement.className = 'flow';
     flowElement.innerHTML = `
-        <div class="flow-header">Flow Name: ${newFlow.title}</div>
+        <div class="flow-header">Flow Name: ${newFlow.title || 'N/A'} </div>
         <button class="delete-flow-button"></button>
         <button class="toggle-states-button"></button>
     `;
@@ -134,10 +321,42 @@ function addFlow() {
             toggleStatesButton.style.backgroundImage = 'url("../images/visible.png")';
         }
     });
-
+    reorderFlows();
     console.log(botData);
     alert('New flow added!');
+    window.location.reload();
 }
+
+
+function reorderFlows() {
+    const flowContainer = document.getElementById('flowsContainer');
+    const flows = Array.from(flowContainer.children);
+    
+    const terminationFlow = flows.find(flow => {
+        const header = flow.querySelector('.flow-header');
+        return header && header.textContent.includes('termination');
+    });
+
+    const onholdFlow = flows.find(flow => {
+        const header = flow.querySelector('.flow-header');
+        return header && header.textContent.includes('onhold');
+    });
+    
+    flows.forEach(flow => {
+        if (flow !== terminationFlow && flow !== onholdFlow) {
+            flowContainer.appendChild(flow);
+        }
+    });
+
+    if (terminationFlow) {
+        flowContainer.appendChild(terminationFlow);
+    }
+
+    if (onholdFlow) {
+        flowContainer.appendChild(onholdFlow);
+    }
+}
+
 
 function editFlow(flowId) {
     console.log('Edit Flow Button Clicked');
@@ -212,9 +431,12 @@ function updateFlow(updatedFlow) {
 function deleteFlow(flowId) {
     const flowIndex = botData.dialogue_flows.findIndex(flow => flow.id === flowId);
     if (flowIndex !== -1) {
+        const deletedFlowTitle = botData.dialogue_flows[flowIndex].title;
         botData.dialogue_flows.splice(flowIndex, 1);
         saveBotData();
         console.log(`Flow with ID ${flowId} deleted`);
+        alert(`Flow "${deletedFlowTitle}"deleted`);
+        window.location.reload();
     } else {
         console.error(`Flow with ID ${flowId} not found`);
     }
@@ -346,9 +568,10 @@ function deleteState(flowId, stateId) {
     if (flow) {
         const stateIndex = flow.states.findIndex(state => state.id === stateId);
         if (stateIndex !== -1) {
+            const deletedStateTitle = flow.states[stateIndex].title;
             flow.states.splice(stateIndex, 1);
             saveBotData();
-            console.log(`State with ID ${stateId} deleted from Flow ID ${flowId}`);
+            alert(`State "${deletedStateTitle}" deleted from Flow "${flow.title}"`);
         } else {
             console.error(`State with ID ${stateId} not found in Flow ID ${flowId}`);
         }
@@ -1321,7 +1544,7 @@ function initializeAppWithBotData() {
         const flowElement = document.createElement('div');
         flowElement.className = 'flow';
         flowElement.innerHTML = `
-            <div class="flow-header">Flow Name: ${flow.title}</div>
+            <div class="flow-header">Flow Name: ${flow.title || 'N/A'} </div>
             <button class="delete-flow-button"></button>
             <button class="toggle-states-button"></button>
         `;
@@ -1360,7 +1583,6 @@ function initializeAppWithBotData() {
             stateElement.id = `${state.id}`;
             stateElement.className = 'state';   
         
-            // Initialize state header
             let stateContent = `
                 <div class="state-header">
                     Name: ${state.title || 'N/A'}
@@ -1369,19 +1591,15 @@ function initializeAppWithBotData() {
                 <hr>
             `;
         
-            // Create state content div
             const stateContentDiv = document.createElement('div');
             stateContentDiv.className = 'state-content';
             
-            // Create delete button
             const deleteButton = document.createElement('button');
             deleteButton.className = 'delete-state-button';
         
-            // Create the warning message div
             const warningDiv = document.createElement('div');
             warningDiv.className = 'warning';
         
-            // Function to update content based on state type
             const updateStateContent = (state) => {
                 let content = `
                     <div class="state-header">
@@ -1409,7 +1627,6 @@ function initializeAppWithBotData() {
                 }
                 stateContentDiv.innerHTML = content;
         
-                // Update the warning message
                 let warningMessage = '';
                 if (!state.title || state.title === 'undefined' || !state.type) {
                     warningMessage += '<div class="warning">State is missing a name or type.</div>';
@@ -1423,7 +1640,6 @@ function initializeAppWithBotData() {
                 warningDiv.innerHTML = warningMessage;
             };
         
-            // Initial update of state content
             updateStateContent(state);
 
             const stateFooter = document.createElement('div');
@@ -1432,17 +1648,11 @@ function initializeAppWithBotData() {
             stateFooter.appendChild(deleteButton);
             stateFooter.appendChild(warningDiv);
         
-            // Append elements to stateElement
             stateElement.appendChild(stateContentDiv);
             stateElement.appendChild(stateFooter);
-
-            // stateElement.appendChild(deleteButton);
-            // stateElement.appendChild(warningDiv);
         
-            // Add event listeners
             stateContentDiv.addEventListener('click', () => {
                 editState(state.id);
-                // Update state content and warning message after editing
                 updateStateContent(state);
             });
         
@@ -1452,7 +1662,6 @@ function initializeAppWithBotData() {
                 stateElement.remove();
             });
         
-            // Append the state element to the container
             const addStateButton = statesContainer.querySelector("#addStateButton");
             if (addStateButton) {
                 statesContainer.insertBefore(stateElement, addStateButton);

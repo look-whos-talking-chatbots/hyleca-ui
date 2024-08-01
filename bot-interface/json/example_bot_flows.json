@@ -634,167 +634,167 @@
           }
         ]
       },
-      {
-        "id": 9999,
-        "title": "termination",
-        "description": "Messages to be sent when all the pre-scripted flows are executed or the conversation needs to be terminated",
-        "conditions": [],
-        "states": [
-          {
-            "id": 9901,
-            "conditions": [],
-            "questions": [],
-            "intents": [],
-            "entities": [],
-            "responses": [
-              {
-                "conditions": [],
-                "text": [
-                  "Alright, this was all the dialogue that I was designed to have!",
-                  "It was fun to talk to you!"
-                ]
-              }
-            ],
-            "triggers": [
-              {
-                "conditions": [],
-                "trigger": [
-                  "flow",
-                  10000
-                ]
-              }
-            ],
-            "type": "monologue",
-            "multipleChoice": [],
-            "generators": [],
-            "actions": []
-          }
-        ]
-      },
-      {
-        "id": 10000,
-        "title": "onhold",
-        "description": "On hold messages, in case the user wants to write the bot off-times.",
-        "conditions": [],
-        "states": [
-          {
-            "id": 10001,
-            "conditions": [],
-            "questions": [],
-            "intents": [],
-            "entities": [],
-            "responses": [
-              {
-                "conditions": [
-                  [
-                    "progress.onhold.is",
-                    true,
-                    "=="
+        {
+          "id": 9999,
+          "title": "termination",
+          "description": "Messages to be sent when all the pre-scripted flows are executed or the conversation needs to be terminated",
+          "conditions": [],
+          "states": [
+            {
+              "id": 9901,
+              "conditions": [],
+              "questions": [],
+              "intents": [],
+              "entities": [],
+              "responses": [
+                {
+                  "conditions": [],
+                  "text": [
+                    "Alright, this was all the dialogue that I was designed to have!",
+                    "It was fun to talk to you!"
                   ]
-                ],
-                "text": [
-                  "Hi {{ name }}, thanks for reaching out, our next session is scheduled for later."
-                ]
-              },
-              {
-                "conditions": [
-                  [
-                    "progress.onhold.is",
-                    false,
-                    "=="
+                }
+              ],
+              "triggers": [
+                {
+                  "conditions": [],
+                  "trigger": [
+                    "flow",
+                    10000
+                  ]
+                }
+              ],
+              "type": "monologue",
+              "multipleChoice": [],
+              "generators": [],
+              "actions": []
+            }
+          ]
+        },
+        {
+          "id": 10000,
+          "title": "onhold",
+          "description": "On hold messages, in case the user wants to write the bot off-times.",
+          "conditions": [],
+          "states": [
+            {
+              "id": 10001,
+              "conditions": [],
+              "questions": [],
+              "intents": [],
+              "entities": [],
+              "responses": [
+                {
+                  "conditions": [
+                    [
+                      "progress.onhold.is",
+                      true,
+                      "=="
+                    ]
                   ],
-                  [
-                    "progress.flow.past",
-                    9999,
-                    "in"
+                  "text": [
+                    "Hi {{ name }}, thanks for reaching out, our next session is scheduled for later."
                   ]
-                ],
-                "text": [
-                  "This was all I could say! Perhaps you can add more options to my dialogue."
-                ]
-              },
-              {
-                "conditions": [
-                  [
-                    "progress.onhold.is",
-                    false,
-                    "=="
+                },
+                {
+                  "conditions": [
+                    [
+                      "progress.onhold.is",
+                      false,
+                      "=="
+                    ],
+                    [
+                      "progress.flow.past",
+                      9999,
+                      "in"
+                    ]
                   ],
-                  [
-                    "progress.flow.past",
-                    9999,
-                    "!in"
+                  "text": [
+                    "This was all I could say! Perhaps you can add more options to my dialogue."
                   ]
-                ],
-                "text": [
-                  ""
-                ]
-              }
-            ],
-            "triggers": [
-              {
-                "conditions": [
-                  [
-                    "progress.onhold.is",
-                    true,
-                    "=="
-                  ]
-                ],
-                "trigger": [
-                  "flow",
-                  10000
-                ]
-              },
-              {
-                "conditions": [
-                  [
-                    "progress.onhold.is",
-                    false,
-                    "=="
+                },
+                {
+                  "conditions": [
+                    [
+                      "progress.onhold.is",
+                      false,
+                      "=="
+                    ],
+                    [
+                      "progress.flow.past",
+                      9999,
+                      "!in"
+                    ]
                   ],
-                  [
-                    "progress.flow.past",
-                    9999,
-                    "in"
+                  "text": [
+                    ""
                   ]
-                ],
-                "trigger": [
-                  "flow",
-                  10000
-                ]
-              },
-              {
-                "conditions": [
-                  [
-                    "progress.onhold.is",
-                    false,
-                    "=="
+                }
+              ],
+              "triggers": [
+                {
+                  "conditions": [
+                    [
+                      "progress.onhold.is",
+                      true,
+                      "=="
+                    ]
                   ],
-                  [
-                    "progress.flow.past",
-                    1111,
-                    "in"
+                  "trigger": [
+                    "flow",
+                    10000
                   ]
-                ],
-                "trigger": [
-                  "flow",
-                  2222
+                },
+                {
+                  "conditions": [
+                    [
+                      "progress.onhold.is",
+                      false,
+                      "=="
+                    ],
+                    [
+                      "progress.flow.past",
+                      9999,
+                      "in"
+                    ]
+                  ],
+                  "trigger": [
+                    "flow",
+                    10000
+                  ]
+                },
+                {
+                  "conditions": [
+                    [
+                      "progress.onhold.is",
+                      false,
+                      "=="
+                    ],
+                    [
+                      "progress.flow.past",
+                      1111,
+                      "in"
+                    ]
+                  ],
+                  "trigger": [
+                    "flow",
+                    2222
+                  ]
+                }
+              ],
+              "type": "on-hold",
+              "multipleChoice": [],
+              "generators": [],
+              "actions": [
+                [
+                  "get_on_hold",
+                  "progress.onhold.is",
+                  "repeat"
                 ]
-              }
-            ],
-            "type": "on-hold",
-            "multipleChoice": [],
-            "generators": [],
-            "actions": [
-              [
-                "get_on_hold",
-                "progress.onhold.is",
-                "repeat"
               ]
-            ]
-          }
-        ]
-      }
+            }
+          ]
+        }
     ]
   }
   
