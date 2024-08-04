@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bot Information</title>
+    <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+    <div class="creat-bot-box">
+        <h1>Create Your Own Bot</h1>
+        <hr>
+        <form id="botInfoForm">
+            <label for="version">Version:</label>
+            <input type="text" id="version" name="version" value="v2" required><br>
+    
+            <label for="name">Name:</label>
+            <input type="text" id="name" name="name" value="Roby-mi" required><br>
+    
+            <label for="description">Description:</label>
+            <input type="text" id="description" name="description" value="Roby: the smoking cessation bot, motivational interviewing variant" required><br>
+    
+            <label for="language">Language:</label>
+            <input type="text" id="language" name="language" value="en" required><br>
+    
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+    
+    <script>
+        document.getElementById('botInfoForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const version = document.getElementById('version').value;
+            const name = document.getElementById('name').value;
+            const description = document.getElementById('description').value;
+            const language = document.getElementById('language').value;
+
+            localStorage.setItem('botInfo', JSON.stringify({ version, name, description, language }));
+
+
+            window.location.href = './current-chat.html';
+        });
+    </script>
+</body>
+</html>
