@@ -37,3 +37,10 @@ Used technologies
 - HTML5
 - CSS
 - Javascript
+
+
+Usage Instructions
+----------------
+
+To interact with the chatbot, navigate to the chat.html file.
+Follow the on-screen instructions to create and modify dialogue flows.
