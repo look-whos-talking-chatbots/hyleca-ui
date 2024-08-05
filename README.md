@@ -1,6 +1,6 @@
 # user_interface
 
-The user interface designed to create and modify chatbots for HyLECA framefork.
+The user interface is designed for creating and modifying chatbots for the HyLECTA framework. It provides functionality for creating, updating, and managing dialogue flows and states, ensuring that the bot behaves as intended. It ensures that each flow and state is correctly defined and properly integrated into the overall bot configuration. It includes checks and warnings to maintain data integrity and offers a user-friendly interface for uploading new bot configurations.
 
 ## Running the Project
 
